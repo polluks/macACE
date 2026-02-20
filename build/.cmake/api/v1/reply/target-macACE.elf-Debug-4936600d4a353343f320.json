@@ -157,7 +157,7 @@
 				},
 				{
 					"backtrace" : 12,
-					"define" : "macACE_VERSION=\"26.2.19\""
+					"define" : "macACE_VERSION=\"26.2.20\""
 				}
 			],
 			"includes" : 
