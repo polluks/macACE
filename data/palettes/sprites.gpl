@@ -1,0 +1,8 @@
+GIMP Palette
+#Palette Name: Sprites
+#Description: Colours for the sprites in AmigaFlappy
+#Colors: 4
+0   0   0   000000
+0   187 0   00bb00
+102 68  0   664400
+255 0   255 ff00ff
