@@ -226,6 +226,30 @@ bartman_gcc_support/fast:
 	$(MAKE) $(MAKESILENT) -f _deps/bartman_gcc_support-build/CMakeFiles/bartman_gcc_support.dir/build.make _deps/bartman_gcc_support-build/CMakeFiles/bartman_gcc_support.dir/build
 .PHONY : bartman_gcc_support/fast
 
+deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.obj: deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj
+.PHONY : deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.obj
+
+# target to build an object file
+deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj
+.PHONY : deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj
+
+deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.i: deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.i
+.PHONY : deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.i
+
+# target to preprocess a source file
+deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.i
+.PHONY : deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.i
+
+deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.s: deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.s
+.PHONY : deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.s
+
+# target to generate assembly for a file
+deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.s
+.PHONY : deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.s
+
 main.obj: main.c.obj
 .PHONY : main.obj
 
@@ -267,6 +291,9 @@ help:
 	@echo "... ace"
 	@echo "... bartman_gcc_support"
 	@echo "... macACE.elf"
+	@echo "... deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.obj"
+	@echo "... deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.i"
+	@echo "... deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.s"
 	@echo "... main.obj"
 	@echo "... main.i"
 	@echo "... main.s"

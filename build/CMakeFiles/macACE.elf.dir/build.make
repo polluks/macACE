@@ -72,10 +72,24 @@ include CMakeFiles/macACE.elf.dir/flags.make
 CMakeFiles/macACE.elf.dir/codegen:
 .PHONY : CMakeFiles/macACE.elf.dir/codegen
 
+CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj: CMakeFiles/macACE.elf.dir/flags.make
+CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj: /Users/phillipb/Documents/macACE/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c
+CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj: CMakeFiles/macACE.elf.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj"
+	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj -MF CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj.d -o CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj -c /Users/phillipb/Documents/macACE/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c
+
+CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.i"
+	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/phillipb/Documents/macACE/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c > CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.i
+
+CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.s"
+	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/phillipb/Documents/macACE/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c -o CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.s
+
 CMakeFiles/macACE.elf.dir/main.c.obj: CMakeFiles/macACE.elf.dir/flags.make
 CMakeFiles/macACE.elf.dir/main.c.obj: /Users/phillipb/Documents/macACE/main.c
 CMakeFiles/macACE.elf.dir/main.c.obj: CMakeFiles/macACE.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/macACE.elf.dir/main.c.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/macACE.elf.dir/main.c.obj"
 	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/macACE.elf.dir/main.c.obj -MF CMakeFiles/macACE.elf.dir/main.c.obj.d -o CMakeFiles/macACE.elf.dir/main.c.obj -c /Users/phillipb/Documents/macACE/main.c
 
 CMakeFiles/macACE.elf.dir/main.c.i: cmake_force
@@ -88,6 +102,7 @@ CMakeFiles/macACE.elf.dir/main.c.s: cmake_force
 
 # Object files for target macACE.elf
 macACE_elf_OBJECTS = \
+"CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj" \
 "CMakeFiles/macACE.elf.dir/main.c.obj"
 
 # External object files for target macACE.elf
@@ -143,6 +158,7 @@ macACE_elf_EXTERNAL_OBJECTS = \
 "/Users/phillipb/Documents/macACE/build/ace/CMakeFiles/ace.dir/src/mini_std/string.c.obj" \
 "/Users/phillipb/Documents/macACE/build/ace/CMakeFiles/ace.dir/src/mini_std/strtoul.c.obj"
 
+macACE.elf: CMakeFiles/macACE.elf.dir/deps/ace/tools/build/_deps/freetype-src/tests/issue-1063/main.c.obj
 macACE.elf: CMakeFiles/macACE.elf.dir/main.c.obj
 macACE.elf: ace/CMakeFiles/ace.dir/src/ace/managers/advancedsprite.c.obj
 macACE.elf: ace/CMakeFiles/ace.dir/src/ace/managers/blit.c.obj
@@ -198,7 +214,7 @@ macACE.elf: CMakeFiles/macACE.elf.dir/build.make
 macACE.elf: _deps/bartman_gcc_support-build/CMakeFiles/bartman_gcc_support.dir/src/gcc8_a_support.s.obj
 macACE.elf: _deps/bartman_gcc_support-build/CMakeFiles/bartman_gcc_support.dir/src/gcc8_c_support.c.obj
 macACE.elf: CMakeFiles/macACE.elf.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable macACE.elf"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking C executable macACE.elf"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/macACE.elf.dir/link.txt --verbose=$(VERBOSE)
 	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/../elf2hunk macACE.elf macACE.exe
 	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-objdump --disassemble -S macACE.elf > macACE.s
