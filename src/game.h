@@ -3,9 +3,6 @@
 
 #include <ace/utils/file.h>
 
-void gameGsCreate(void);
-void gameGsLoop(void);
-void gameGsDestroy(void);
 
 typedef enum 
 {
@@ -20,12 +17,24 @@ typedef enum{
     TEAM_DEFENDER
 } Team;
 typedef struct g_piece{
-    int row;
-    int col;
+    UBYTE pos; //pos in board array
     PieceType type;  // KING, DEFENDER, ATTACKER
     Team team;       // 0 = Defneder LIGHT, Anything else = Attacker DARK
     UBYTE captured;  //0 not captured, anything else = captured.
 } g_piece;
+//turn all these enums back into just shorts.
+
+void gameGsCreate(void);
+void gameGsLoop(void);
+void gameGsDestroy(void);
+void buildBoard(void);
+void setupPieces(void);
+//void movePiece(g_piece *piece, UBYTE newPos);
+//void checkForCaptures(g_piece *movedPiece);
+void checkForWin(void);
+void drawBoard(void);
+void drawPieces(void);
+//void drawPiece(g_piece piece);
 
 
 #endif // _GAME_H_
