@@ -3,7 +3,6 @@
 
 #include <ace/utils/file.h>
 
-
 typedef enum 
 {
     DEFENDER,
@@ -24,10 +23,17 @@ typedef struct g_piece{
 } g_piece;
 //turn all these enums back into just shorts.
 
+typedef struct
+{
+    short x;
+    short y;
+} ScreenPos;
+
 void gameGsCreate(void);
 void gameGsLoop(void);
 void gameGsDestroy(void);
 void buildBoard(void);
+void setupBoard(void);
 void setupPieces(void);
 void loadAssets(void);
 //void movePiece(g_piece *piece, UBYTE newPos);

@@ -20,12 +20,13 @@
 #define MAX_ATTACKERS 24  //24 Attackers
 #define BOARD_WIDTH 256 
 #define BOARD_HEIGHT 256
-#define BOARD_ORIGIN_X 32 //offset from left edge of screen to start of board
-#define BOARD_ORIGIN_Y 0 //offset from top edge of screen to start of board
-#define SQUARE_WIDTH 32 //size of each square on the board in pixels
-#define SQUARE_HEIGHT 25 //22 +3 for the line width
+#define BOARD_ORIGIN_X 28 //offset from left edge of screen to start of board
+#define BOARD_ORIGIN_Y 3 //offset from top edge of screen to start of board
+#define SQUARE_Y 23 //size of each square on the board in pixels
+#define SQUARE_X 23
 #define PIECE_SPRITE_WIDTH 32 //size of each piece sprite in pixels
 #define PIECE_SPRITE_HEIGHT 21
+//#define OUTPUT_LOGGING
 
 /*------Setting Up Viewports-------*/
 static tView *s_pView; // View containing all the viewports
@@ -41,8 +42,10 @@ g_piece defenders[MAX_DEFENDERS];
 static tBitMap *pBmBoard;
 static tBitMap *pBmAttackers[MAX_ATTACKERS];
 static tBitMap *pBmAttackers_Mask[MAX_ATTACKERS];
+static tBitMap *pBmAttackers_BG[MAX_ATTACKERS]; //for drawing the pieces with the background when they move, to prevent leaving trails
 static tBitMap *pBmDefenders[MAX_DEFENDERS];
 static tBitMap *pBmDefenders_Mask[MAX_DEFENDERS];
+static tBitMap *pBmDefenders_BG[MAX_DEFENDERS]; //for drawing the pieces with the background when they move, to prevent leaving trails
 static tBitMap *pBmKing; //since the king is a different graphic
 static tBitMap *pBmKing_Mask;
 static tBitMap *KingMaskImage;
@@ -55,6 +58,7 @@ tTextBitMap *testingbitmap;
 /*-----Global Vars-----*/
 ULONG startTime;
 UBYTE board[169]; // flattened 13x13 board array, each index corresponds to a square on the board. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
+ScreenPos draw_pos[169];
 UBYTE specialpos[5]; //four corners and the throne are only for the King
 
 
@@ -94,6 +98,7 @@ void gameGsCreate(void) {
 
     loadAssets();
     setupPieces(); //sets up the pieces in their starting positions in the board array and in the piece structs
+    setupBoard(); //sets up the draw positions for each square on the board in the draw_pos array
     buildBoard(); //sets up the board array with the pieces in their starting positions and the special squares marked
     drawBoard(); //draws the board and pieces to the screen, will need to be called again every time a piece moves or is captured
 
@@ -117,30 +122,30 @@ void gameGsDestroy(void) {
 //loads in the game assets, including the piece sprites and their masks for blitting with transparency.
 void loadAssets(void){
   for(UBYTE i = 0; i < MAX_ATTACKERS; i++){
-    pBmAttackers[i] = bitmapCreateFromPath("/data/GFX/Attackers.bm",0);
-    pBmAttackers_Mask[i] = bitmapCreateFromPath("/data/GFX/Attackers_Mask.bm",0);
+    pBmAttackers[i] = bitmapCreateFromPath("/data/GFX/attackers.bm",0);
+    pBmAttackers_Mask[i] = bitmapCreateFromPath("/data/GFX/attackers_mask.bm",0);
   }
   for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
-    pBmDefenders[j] = bitmapCreateFromPath("/data/GFX/Defenders.bm",0);
-    pBmDefenders_Mask[j] = bitmapCreateFromPath("/data/GFX/Defenders_Mask.bm",0);
+    pBmDefenders[j] = bitmapCreateFromPath("/data/GFX/defenders.bm",0);
+    pBmDefenders_Mask[j] = bitmapCreateFromPath("/data/GFX/defenders_mask.bm",0);
   }
-  pBmKing = bitmapCreateFromPath("/data/GFX/King.bm",0);
-  pBmKing_Mask = bitmapCreateFromPath("/data/GFX/King_Mask.bm",0);
-  pBmClashFX = bitmapCreateFromPath("/data/GFX/ClashFX.bm",0);
-  pBmClashFX_Mask = bitmapCreateFromPath("/data/GFX/ClashFX_Mask.bm",0);
+  pBmKing = bitmapCreateFromPath("/data/GFX/king.bm",0);
+  pBmKing_Mask = bitmapCreateFromPath("/data/GFX/king_mask.bm",0);
+  pBmClashFX = bitmapCreateFromPath("/data/GFX/clashFX.bm",0);
+  pBmClashFX_Mask = bitmapCreateFromPath("/data/GFX/clashFX_mask.bm",0);
 }
 //sets up the pieces in their starting positions in the board array and in the piece structs
 void setupPieces(void){
   
   UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
     17,18,19,20,21,32,
-    63,76,88,89,102,115,
+    63,76,88,89,102,115, //something in this  row isn't working. 
     79,66,53,92,105,80,
     147,148,149,150,151,136
   };
 
   UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
-    84, 58,70,71,72,82,83,85,86,96,97,98,110
+    84,58,70,71,72,82,83,85,86,96,97,98,110
   };
 
   // Set up the defenders
@@ -158,6 +163,23 @@ void setupPieces(void){
     attackers[i].captured = 0;
     attackers[i].pos = attackerPositions[i]; // Assign starting positions from the predefined array
   }
+}
+
+void setupBoard(void){
+  for(UBYTE y = 0; y < 13; y++){
+    for(UBYTE x = 0; x < 13; x++){
+      UBYTE i = y * 13 + x; //calculate the index in the board array for this position
+      draw_pos[i].x = BOARD_ORIGIN_X + (x - 1) * SQUARE_X; //calculate the screen position for this square based on the origin and square size
+      draw_pos[i].y = BOARD_ORIGIN_Y + (y - 1) * SQUARE_Y;
+    }
+  }
+
+  //DEBUG: print the draw positions to the log to check they're correct
+  #ifdef OUTPUT_LOGGING
+  for(UBYTE i = 0; i < 169; i++){
+    logWrite("Draw POS: %d is x: %d y: %d \n", i, draw_pos[i].x, draw_pos[i].y);
+  }
+  #endif
 }
 //sets up the board array with the pieces in their starting positions and the special squares marked
 void buildBoard(void){
@@ -188,9 +210,12 @@ void buildBoard(void){
     }
 
     //DEBUG: print the board to the log to check it's set up correctly
-    // for(UBYTE i = 0; i < 169; i++){
-    //     logWrite("%d ", board[i]);
-    // }
+    #ifdef OUTPUT_LOGGING
+    for(UBYTE i = 0; i < 169; i++){
+        logWrite("Board POS: %d is %d \n", i, board[i]);
+    }
+    #endif
+
     //set up the special positions for the corners and throne
     specialpos[0] = 13; //top left corner
     specialpos[1] = 24; //top right corner
@@ -199,11 +224,28 @@ void buildBoard(void){
     specialpos[4] = 84; //throne in the middle
 }
 //draws the pieces to the screen, will need to be called again every time a piece moves or is captured
-void drawBoard(void){
-  blitCopy(s_pMainBuffer->pBack,200,200,
-    KingMaskImage,0,0,32,32,MINTERM_COOKIE);
-  
-  blitCopyMask(pBmKing,0,0,
-    s_pMainBuffer->pBack,143,118,
-    PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmKing_Mask->Planes[0]);
+void drawBoard(void){ //TODO add the BG masks so what's under them is saved for restore.
+  for (UBYTE i = 0; i < 169; i++){
+    if(board[i] == 1){ //defender
+      for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
+        if(defenders[j].pos == i && !defenders[j].captured){
+          blitCopyMask(pBmDefenders[j],0,0,
+            s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
+            PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmDefenders_Mask[j]->Planes[0]);
+        }
+      }
+    } else if(board[i] == 2){ //attacker
+      for(UBYTE k = 0; k < MAX_ATTACKERS; k++){
+        if(attackers[k].pos == i && !attackers[k].captured){
+          blitCopyMask(pBmAttackers[k],0,0,
+            s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
+            PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmAttackers_Mask[k]->Planes[0]);
+        }
+      }
+    } else if(board[i] == 3){ //king
+      blitCopyMask(pBmKing,0,0,
+        s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
+        PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmKing_Mask->Planes[0]);
+    }
+  }
 }
