@@ -11,6 +11,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/phillipb/Documents/macACE/main.c" "CMakeFiles/macACE.elf.dir/main.c.obj" "gcc" "CMakeFiles/macACE.elf.dir/main.c.obj.d"
   "/Users/phillipb/Documents/macACE/src/game.c" "CMakeFiles/macACE.elf.dir/src/game.c.obj" "gcc" "CMakeFiles/macACE.elf.dir/src/game.c.obj.d"
   "/Users/phillipb/Documents/macACE/src/menu.c" "CMakeFiles/macACE.elf.dir/src/menu.c.obj" "gcc" "CMakeFiles/macACE.elf.dir/src/menu.c.obj.d"
+  "/Users/phillipb/Documents/macACE/src/mouse.c" "CMakeFiles/macACE.elf.dir/src/mouse.c.obj" "gcc" "CMakeFiles/macACE.elf.dir/src/mouse.c.obj.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

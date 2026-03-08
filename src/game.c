@@ -1,4 +1,5 @@
 #include "game.h"
+#include "mouse.h"
 #include <ace/managers/key.h>
 #include <ace/managers/game.h>
 #include <ace/managers/system.h>
@@ -26,7 +27,9 @@
 #define SQUARE_X 23
 #define PIECE_SPRITE_WIDTH 32 //size of each piece sprite in pixels
 #define PIECE_SPRITE_HEIGHT 21
-//#define OUTPUT_LOGGING
+#define CURSOR_SPRITE_WIDTH 16
+#define CURSOR_SPRITE_HEIGHT 16
+//#define OUTPUT_LOGGING //uncomment to enable more logging on arrays and positions in the debug.txt file.
 
 /*------Setting Up Viewports-------*/
 static tView *s_pView; // View containing all the viewports
@@ -51,6 +54,10 @@ static tBitMap *pBmKing_Mask;
 static tBitMap *pBmKing_BG; 
 static tBitMap *pBmClashFX; //FX to flash when one piece takes another
 static tBitMap *pBmClashFX_Mask;
+static tBitMap *pBmClashFX_BG; //for drawing the FX with the background when they move, to prevent leaving trails
+static tBitMap *pBmSquareHighlight; //for highlighting valid moves and selected pieces
+static tBitMap *pBmSquareHighlight_Mask;
+static tBitMap *pBmSquareHighlight_BG; //for drawing the highlight with the background when it moves, to prevent leaving trails
 
 tFont *gFontSmall; //global font for screen
 tTextBitMap *testingbitmap;
@@ -59,9 +66,10 @@ tTextBitMap *testingbitmap;
 ULONG startTime;
 UBYTE boardState[169]; // flattened 13x13 board array, each index corresponds to a square on the board. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
 UBYTE boardStateNew[169]; //used to hold the new state of the board after a move, here we can check for captures, wins etc before doing a compare and draw the difference.
+UBYTE validMoves[169]; //used to hold the valid moves for a selected piece, indexed the same as the board array, 0 = not valid, 1 = valid move. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
 ScreenPos draw_pos[169];
 UBYTE specialpos[5]; //four corners and the throne are only for the King
-
+UBYTE currentPlayer = 1; //0 = defender, 1 = attacker : games start with attacker turn so this is initialised to 1
 
 void gameGsCreate(void) {
 
@@ -111,6 +119,23 @@ void gameGsLoop(void) {
   if(keyCheck(KEY_ESCAPE)) {
     gameExit();
   }
+  //Do mouse stuff here to select and move pieces, check for captures and wins, etc.
+  
+  /* On click
+  find the board position given the mouse x/y and the draw_pos array
+  check if there's a piece in that position that belongs to the current player using the boardState array
+  if there is, calculate the valid moves for that piece and populate the validMoves array
+  then when the player clicks a valid move, update the piece's position in its struct and update the boardState array, then call drawBoard() to update the screen. 
+  After that, check for captures by looking at the squares around the moved piece in the boardState array, if there's an enemy piece there, 
+  check if it's surrounded on the other side by a friendly piece or a special square, if it is, mark it as captured in its struct and update the boardState array to remove it from the board, 
+  then call drawBoard() again to update the screen. 
+  Finally, check for wins by seeing if the king is captured or if he reaches a corner, and if so, end the game and show a win screen.
+  
+  */
+
+
+  //switch to next player
+  currentPlayer = (currentPlayer == 0) ? 1 : 0;
 }
 
 void gameGsDestroy(void) {
@@ -223,7 +248,7 @@ void buildBoard(void){
     specialpos[4] = 84; //throne in the middle
 }
 //draws the pieces to the screen, will need to be called again every time a piece moves or is captured
-void drawBoard(void){ //TODO add the BG masks so what's under them is saved for restore.
+void drawBoard(void){ 
   for (UBYTE i = 0; i < 169; i++){
     if(boardState[i] == 1){ //defender
       for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
@@ -265,4 +290,8 @@ void drawBoard(void){ //TODO add the BG masks so what's under them is saved for 
         PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmKing_Mask->Planes[0]);
     }
   }
+}
+
+void createMouseCursor(void){
+  //initialise mouse cursor sprite and mask here, then set it as the active cursor with mouseSetCursor() so we can use it for piece selection and movement.
 }

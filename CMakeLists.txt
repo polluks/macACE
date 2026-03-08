@@ -4,7 +4,7 @@ set(ACE_DEBUG ON)
 #set(ACE_DEBUG_UAE ON)
 #set(CMAKE_C_STANDARD 17)
 # Add your project settings here
-file(GLOB_RECURSE SOURCES src/*.c main.c my_strtol.c)
+file(GLOB_RECURSE SOURCES src/*.c main.c)
 
 if(ELF2HUNK)
 	set(macACE_EXECUTABLE macACE.elf)

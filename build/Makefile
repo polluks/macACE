@@ -298,6 +298,30 @@ src/menu.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/menu.c.s
 .PHONY : src/menu.c.s
 
+src/mouse.obj: src/mouse.c.obj
+.PHONY : src/mouse.obj
+
+# target to build an object file
+src/mouse.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/mouse.c.obj
+.PHONY : src/mouse.c.obj
+
+src/mouse.i: src/mouse.c.i
+.PHONY : src/mouse.i
+
+# target to preprocess a source file
+src/mouse.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/mouse.c.i
+.PHONY : src/mouse.c.i
+
+src/mouse.s: src/mouse.c.s
+.PHONY : src/mouse.s
+
+# target to generate assembly for a file
+src/mouse.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/mouse.c.s
+.PHONY : src/mouse.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -324,6 +348,9 @@ help:
 	@echo "... src/menu.obj"
 	@echo "... src/menu.i"
 	@echo "... src/menu.s"
+	@echo "... src/mouse.obj"
+	@echo "... src/mouse.i"
+	@echo "... src/mouse.s"
 .PHONY : help
 
 

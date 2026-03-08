@@ -132,12 +132,12 @@ CMakeFiles/macACE.elf.dir/all: ace/CMakeFiles/ace.dir/all
 CMakeFiles/macACE.elf.dir/all: _deps/bartman_gcc_support-build/CMakeFiles/bartman_gcc_support.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=55,56,57,58 "Built target macACE.elf"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=55,56,57,58,59 "Built target macACE.elf"
 .PHONY : CMakeFiles/macACE.elf.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/macACE.elf.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/phillipb/Documents/macACE/build/CMakeFiles 56
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/phillipb/Documents/macACE/build/CMakeFiles 57
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/macACE.elf.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/phillipb/Documents/macACE/build/CMakeFiles 0
 .PHONY : CMakeFiles/macACE.elf.dir/rule
@@ -149,7 +149,7 @@ macACE.elf: CMakeFiles/macACE.elf.dir/rule
 # codegen rule for target.
 CMakeFiles/macACE.elf.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=55,56,57,58 "Finished codegen for target macACE.elf"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=55,56,57,58,59 "Finished codegen for target macACE.elf"
 .PHONY : CMakeFiles/macACE.elf.dir/codegen
 
 # clean rule for target.
