@@ -8,6 +8,7 @@
 #include <ace/managers/state.h>
 #include <ace/managers/rand.h>
 #include <ace/managers/sprite.h>
+#include <ace/managers/mouse.h>
 #include <ace/utils/file.h>
 #include <ace/utils/font.h>
 #include <ace/utils/string.h>
@@ -28,7 +29,8 @@
 #define PIECE_SPRITE_WIDTH 32 //size of each piece sprite in pixels
 #define PIECE_SPRITE_HEIGHT 21
 #define CURSOR_SPRITE_WIDTH 16
-#define CURSOR_SPRITE_HEIGHT 16
+#define CURSOR_SPRITE_HEIGHT 18
+#define CURSOR_SPRITE_CHANNEL 5
 //#define OUTPUT_LOGGING //uncomment to enable more logging on arrays and positions in the debug.txt file.
 
 /*------Setting Up Viewports-------*/
@@ -58,6 +60,11 @@ static tBitMap *pBmClashFX_BG; //for drawing the FX with the background when the
 static tBitMap *pBmSquareHighlight; //for highlighting valid moves and selected pieces
 static tBitMap *pBmSquareHighlight_Mask;
 static tBitMap *pBmSquareHighlight_BG; //for drawing the highlight with the background when it moves, to prevent leaving trails
+static tBitMap *pBmMouseCursorSrc;
+static tBitMap *pBmMouseCursorData;
+
+static tSprite *pBmMouseCursor;
+
 
 tFont *gFontSmall; //global font for screen
 tTextBitMap *testingbitmap;
@@ -67,9 +74,11 @@ ULONG startTime;
 UBYTE boardState[169]; // flattened 13x13 board array, each index corresponds to a square on the board. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
 UBYTE boardStateNew[169]; //used to hold the new state of the board after a move, here we can check for captures, wins etc before doing a compare and draw the difference.
 UBYTE validMoves[169]; //used to hold the valid moves for a selected piece, indexed the same as the board array, 0 = not valid, 1 = valid move. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
-ScreenPos draw_pos[169];
 UBYTE specialpos[5]; //four corners and the throne are only for the King
 UBYTE currentPlayer = 1; //0 = defender, 1 = attacker : games start with attacker turn so this is initialised to 1
+UBYTE s_ubBufferIndex = 0; //for double buffering, keeps track of which buffer we're currently drawing to
+
+ScreenPos draw_pos[169];
 
 void gameGsCreate(void) {
 
@@ -86,11 +95,11 @@ void gameGsCreate(void) {
 
     s_pMainBuffer = simpleBufferCreate(0,
     TAG_SIMPLEBUFFER_VPORT, s_pVpMain,
-    TAG_SIMPLEBUFFER_BITMAP_FLAGS, BMF_CLEAR,
+    TAG_SIMPLEBUFFER_BITMAP_FLAGS, BMF_INTERLEAVED,
     TAG_SIMPLEBUFFER_IS_DBLBUF, 1, //add this line in for double buffering
     TAG_END);
 
-    paletteLoadFromPath("/data/palette/GamePalette.plt", s_pVpMain->pPalette, 32);
+    paletteLoadFromPath("/data/palette/GamePalettev2.plt", s_pVpMain->pPalette, 32);
 
     pBmBoard = bitmapCreateFromPath("/data/GFX/BG1.bm",0);
     //add asserts here later to check all this logic
@@ -103,6 +112,20 @@ void gameGsCreate(void) {
     
     gFontSmall = fontCreateFromPath("/data/font/myacefont.fnt");
 
+    spriteManagerCreate(s_pView, 0, NULL);
+    systemSetDmaBit(DMAB_SPRITE, 1);
+
+    pBmMouseCursorSrc = bitmapCreateFromPath("/data/GFX/mousepointer.bm",0);
+    pBmMouseCursorData = bitmapCreate(CURSOR_SPRITE_WIDTH,CURSOR_SPRITE_HEIGHT,2,BMF_INTERLEAVED | BMF_CLEAR);
+    pBmMouseCursor = spriteAdd(CURSOR_SPRITE_CHANNEL,pBmMouseCursorData);
+
+    spriteSetEnabled(pBmMouseCursor, 1);
+    
+    // blitCopyMask(pBmMouseCursorSrc,0,0,
+    // pBmMouseCursorData,0,0,CURSOR_SPRITE_WIDTH,16,pBmMouseCursorSrc->Planes[0]);
+    blitCopy(pBmMouseCursorSrc, 0,0,
+    pBmMouseCursorData,0,0,CURSOR_SPRITE_WIDTH,16,MINTERM_COOKIE);
+    
     loadAssets();
     setupPieces(); //sets up the pieces in their starting positions in the board array and in the piece structs
     setupBoard(); //sets up the draw positions for each square on the board in the draw_pos array
@@ -114,13 +137,37 @@ void gameGsCreate(void) {
     viewLoad(s_pView);
 }
 
+
 void gameGsLoop(void) {
     // This will loop every frame
-  if(keyCheck(KEY_ESCAPE)) {
-    gameExit();
-  }
-  //Do mouse stuff here to select and move pieces, check for captures and wins, etc.
+    if(keyCheck(KEY_ESCAPE)) {
+      gameExit();
+    }
+    //Do mouse stuff here to select and move pieces, check for captures and wins, etc.
   
+    UWORD mouseX = mouseGetX(MOUSE_PORT_1);
+    UWORD mouseY = mouseGetY(MOUSE_PORT_1);
+    
+    pBmMouseCursor->wX = mouseX;
+    pBmMouseCursor->wY = mouseY;
+    
+    spriteProcess(pBmMouseCursor);
+    spriteProcessChannel(CURSOR_SPRITE_CHANNEL);
+    //redraw the board and pieces every frame, for now we can optimize this later by only redrawing the squares that changed when a piece moves or is captured, but for now this is simpler 
+    //to implement and works fine performance-wise since it's a small board and not many pieces.
+    drawBoard();
+    
+    s_ubBufferIndex = !s_ubBufferIndex; //toggle the buffer index for double buffering    
+     
+    //switch to next player
+    currentPlayer = (currentPlayer == 0) ? 1 : 0;
+
+    viewProcessManagers(s_pView);
+    copProcessBlocks();
+    systemIdleBegin();
+    vPortWaitForEnd(s_pVpMain);
+    systemIdleEnd();
+}
   /* On click
   find the board position given the mouse x/y and the draw_pos array
   check if there's a piece in that position that belongs to the current player using the boardState array
@@ -132,12 +179,6 @@ void gameGsLoop(void) {
   Finally, check for wins by seeing if the king is captured or if he reaches a corner, and if so, end the game and show a win screen.
   
   */
-
-
-  //switch to next player
-  currentPlayer = (currentPlayer == 0) ? 1 : 0;
-}
-
 void gameGsDestroy(void) {
     systemUse();
     bitmapDestroy(pBmBoard);
@@ -248,6 +289,7 @@ void buildBoard(void){
     specialpos[4] = 84; //throne in the middle
 }
 //draws the pieces to the screen, will need to be called again every time a piece moves or is captured
+//Look to make this more efficent later by only redrawing the squares that changed when a piece moves or is captured.
 void drawBoard(void){ 
   for (UBYTE i = 0; i < 169; i++){
     if(boardState[i] == 1){ //defender

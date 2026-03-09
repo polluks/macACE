@@ -35,6 +35,7 @@ CMakeFiles/macACE.elf.dir/src/game.c.obj: /Users/phillipb/Documents/macACE/src/g
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/key.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/log.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/memory.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/mouse.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/rand.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/sprite.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/state.h \
@@ -93,8 +94,6 @@ CMakeFiles/macACE.elf.dir/src/mouse.c.obj: /Users/phillipb/Documents/macACE/src/
   /Users/phillipb/Documents/macACE/src/mouse.h
 
 
-/Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/mouse.h:
-
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/joy.h:
 
 /Users/phillipb/Documents/macACE/src/menu.c:
@@ -106,6 +105,8 @@ CMakeFiles/macACE.elf.dir/src/mouse.c.obj: /Users/phillipb/Documents/macACE/src/
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/extview.h:
 
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/sprite.h:
+
+/Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/mouse.h:
 
 /Users/phillipb/Documents/macACE/src/mouse.c:
 
