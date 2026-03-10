@@ -23,8 +23,8 @@ CMakeFiles/macACE.elf.dir/main.c.obj: /Users/phillipb/Documents/macACE/main.c \
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/stdlib.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/string.h \
   /Users/phillipb/Documents/macACE/src/game.h \
+  /Users/phillipb/Documents/macACE/src/input.h \
   /Users/phillipb/Documents/macACE/src/menu.h \
-  /Users/phillipb/Documents/macACE/src/mouse.h \
   /Users/phillipb/Documents/macACE/src/states.h
 
 CMakeFiles/macACE.elf.dir/src/game.c.obj: /Users/phillipb/Documents/macACE/src/game.c \
@@ -56,7 +56,17 @@ CMakeFiles/macACE.elf.dir/src/game.c.obj: /Users/phillipb/Documents/macACE/src/g
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/stdio.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/string.h \
   /Users/phillipb/Documents/macACE/src/game.h \
-  /Users/phillipb/Documents/macACE/src/mouse.h
+  /Users/phillipb/Documents/macACE/src/input.h
+
+CMakeFiles/macACE.elf.dir/src/input.c.obj: /Users/phillipb/Documents/macACE/src/input.c \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/macros.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/joy.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/key.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/mouse.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/system.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/types.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/custom.h \
+  /Users/phillipb/Documents/macACE/src/input.h
 
 CMakeFiles/macACE.elf.dir/src/menu.c.obj: /Users/phillipb/Documents/macACE/src/menu.c \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/macros.h \
@@ -85,18 +95,12 @@ CMakeFiles/macACE.elf.dir/src/menu.c.obj: /Users/phillipb/Documents/macACE/src/m
   /Users/phillipb/Documents/macACE/src/menu.h \
   /Users/phillipb/Documents/macACE/src/states.h
 
-CMakeFiles/macACE.elf.dir/src/mouse.c.obj: /Users/phillipb/Documents/macACE/src/mouse.c \
-  /Users/phillipb/Documents/macACE/deps/ace/include/ace/macros.h \
-  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/joy.h \
-  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/key.h \
-  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/mouse.h \
-  /Users/phillipb/Documents/macACE/deps/ace/include/ace/types.h \
-  /Users/phillipb/Documents/macACE/src/mouse.h
 
+/Users/phillipb/Documents/macACE/src/menu.c:
 
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/joy.h:
 
-/Users/phillipb/Documents/macACE/src/menu.c:
+/Users/phillipb/Documents/macACE/src/input.c:
 
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/string.h:
 
@@ -108,9 +112,9 @@ CMakeFiles/macACE.elf.dir/src/mouse.c.obj: /Users/phillipb/Documents/macACE/src/
 
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/mouse.h:
 
-/Users/phillipb/Documents/macACE/src/mouse.c:
-
 /Users/phillipb/Documents/macACE/src/states.h:
+
+/Users/phillipb/Documents/macACE/src/menu.h:
 
 /Users/phillipb/Documents/macACE/src/game.h:
 
@@ -130,15 +134,13 @@ CMakeFiles/macACE.elf.dir/src/mouse.c.obj: /Users/phillipb/Documents/macACE/src/
 
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/bitmap.h:
 
+/Users/phillipb/Documents/macACE/src/input.h:
+
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/types.h:
 
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/memory.h:
 
-/Users/phillipb/Documents/macACE/src/mouse.h:
-
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/log.h:
-
-/Users/phillipb/Documents/macACE/src/menu.h:
 
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/key.h:
 

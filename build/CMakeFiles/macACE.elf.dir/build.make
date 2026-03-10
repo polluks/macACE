@@ -100,10 +100,24 @@ CMakeFiles/macACE.elf.dir/src/game.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/macACE.elf.dir/src/game.c.s"
 	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/phillipb/Documents/macACE/src/game.c -o CMakeFiles/macACE.elf.dir/src/game.c.s
 
+CMakeFiles/macACE.elf.dir/src/input.c.obj: CMakeFiles/macACE.elf.dir/flags.make
+CMakeFiles/macACE.elf.dir/src/input.c.obj: /Users/phillipb/Documents/macACE/src/input.c
+CMakeFiles/macACE.elf.dir/src/input.c.obj: CMakeFiles/macACE.elf.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/macACE.elf.dir/src/input.c.obj"
+	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/macACE.elf.dir/src/input.c.obj -MF CMakeFiles/macACE.elf.dir/src/input.c.obj.d -o CMakeFiles/macACE.elf.dir/src/input.c.obj -c /Users/phillipb/Documents/macACE/src/input.c
+
+CMakeFiles/macACE.elf.dir/src/input.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/macACE.elf.dir/src/input.c.i"
+	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/phillipb/Documents/macACE/src/input.c > CMakeFiles/macACE.elf.dir/src/input.c.i
+
+CMakeFiles/macACE.elf.dir/src/input.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/macACE.elf.dir/src/input.c.s"
+	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/phillipb/Documents/macACE/src/input.c -o CMakeFiles/macACE.elf.dir/src/input.c.s
+
 CMakeFiles/macACE.elf.dir/src/menu.c.obj: CMakeFiles/macACE.elf.dir/flags.make
 CMakeFiles/macACE.elf.dir/src/menu.c.obj: /Users/phillipb/Documents/macACE/src/menu.c
 CMakeFiles/macACE.elf.dir/src/menu.c.obj: CMakeFiles/macACE.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/macACE.elf.dir/src/menu.c.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/macACE.elf.dir/src/menu.c.obj"
 	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/macACE.elf.dir/src/menu.c.obj -MF CMakeFiles/macACE.elf.dir/src/menu.c.obj.d -o CMakeFiles/macACE.elf.dir/src/menu.c.obj -c /Users/phillipb/Documents/macACE/src/menu.c
 
 CMakeFiles/macACE.elf.dir/src/menu.c.i: cmake_force
@@ -114,26 +128,12 @@ CMakeFiles/macACE.elf.dir/src/menu.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/macACE.elf.dir/src/menu.c.s"
 	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/phillipb/Documents/macACE/src/menu.c -o CMakeFiles/macACE.elf.dir/src/menu.c.s
 
-CMakeFiles/macACE.elf.dir/src/mouse.c.obj: CMakeFiles/macACE.elf.dir/flags.make
-CMakeFiles/macACE.elf.dir/src/mouse.c.obj: /Users/phillipb/Documents/macACE/src/mouse.c
-CMakeFiles/macACE.elf.dir/src/mouse.c.obj: CMakeFiles/macACE.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/macACE.elf.dir/src/mouse.c.obj"
-	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/macACE.elf.dir/src/mouse.c.obj -MF CMakeFiles/macACE.elf.dir/src/mouse.c.obj.d -o CMakeFiles/macACE.elf.dir/src/mouse.c.obj -c /Users/phillipb/Documents/macACE/src/mouse.c
-
-CMakeFiles/macACE.elf.dir/src/mouse.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/macACE.elf.dir/src/mouse.c.i"
-	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /Users/phillipb/Documents/macACE/src/mouse.c > CMakeFiles/macACE.elf.dir/src/mouse.c.i
-
-CMakeFiles/macACE.elf.dir/src/mouse.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/macACE.elf.dir/src/mouse.c.s"
-	/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt/bin/m68k-amiga-elf-gcc --sysroot=/Users/phillipb/.vscode/extensions/bartmanabyss.amiga-debug-1.7.9/bin/darwin/opt $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/phillipb/Documents/macACE/src/mouse.c -o CMakeFiles/macACE.elf.dir/src/mouse.c.s
-
 # Object files for target macACE.elf
 macACE_elf_OBJECTS = \
 "CMakeFiles/macACE.elf.dir/main.c.obj" \
 "CMakeFiles/macACE.elf.dir/src/game.c.obj" \
-"CMakeFiles/macACE.elf.dir/src/menu.c.obj" \
-"CMakeFiles/macACE.elf.dir/src/mouse.c.obj"
+"CMakeFiles/macACE.elf.dir/src/input.c.obj" \
+"CMakeFiles/macACE.elf.dir/src/menu.c.obj"
 
 # External object files for target macACE.elf
 macACE_elf_EXTERNAL_OBJECTS = \
@@ -190,8 +190,8 @@ macACE_elf_EXTERNAL_OBJECTS = \
 
 macACE.elf: CMakeFiles/macACE.elf.dir/main.c.obj
 macACE.elf: CMakeFiles/macACE.elf.dir/src/game.c.obj
+macACE.elf: CMakeFiles/macACE.elf.dir/src/input.c.obj
 macACE.elf: CMakeFiles/macACE.elf.dir/src/menu.c.obj
-macACE.elf: CMakeFiles/macACE.elf.dir/src/mouse.c.obj
 macACE.elf: ace/CMakeFiles/ace.dir/src/ace/managers/advancedsprite.c.obj
 macACE.elf: ace/CMakeFiles/ace.dir/src/ace/managers/blit.c.obj
 macACE.elf: ace/CMakeFiles/ace.dir/src/ace/managers/bob.c.obj

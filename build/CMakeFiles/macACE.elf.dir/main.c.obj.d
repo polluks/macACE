@@ -23,7 +23,7 @@ CMakeFiles/macACE.elf.dir/main.c.obj: \
  /Users/phillipb/Documents/macACE/src/game.h \
  /Users/phillipb/Documents/macACE/src/menu.h \
  /Users/phillipb/Documents/macACE/src/states.h \
- /Users/phillipb/Documents/macACE/src/mouse.h
+ /Users/phillipb/Documents/macACE/src/input.h
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/generic/main.h:
 /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/stdlib.h:
 /Users/phillipb/Documents/macACE/deps/ace/include/ace/types.h:
@@ -47,4 +47,4 @@ CMakeFiles/macACE.elf.dir/main.c.obj: \
 /Users/phillipb/Documents/macACE/src/game.h:
 /Users/phillipb/Documents/macACE/src/menu.h:
 /Users/phillipb/Documents/macACE/src/states.h:
-/Users/phillipb/Documents/macACE/src/mouse.h:
+/Users/phillipb/Documents/macACE/src/input.h:

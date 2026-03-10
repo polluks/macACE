@@ -3,10 +3,10 @@ file(REMOVE_RECURSE
   "CMakeFiles/macACE.elf.dir/main.c.obj.d"
   "CMakeFiles/macACE.elf.dir/src/game.c.obj"
   "CMakeFiles/macACE.elf.dir/src/game.c.obj.d"
+  "CMakeFiles/macACE.elf.dir/src/input.c.obj"
+  "CMakeFiles/macACE.elf.dir/src/input.c.obj.d"
   "CMakeFiles/macACE.elf.dir/src/menu.c.obj"
   "CMakeFiles/macACE.elf.dir/src/menu.c.obj.d"
-  "CMakeFiles/macACE.elf.dir/src/mouse.c.obj"
-  "CMakeFiles/macACE.elf.dir/src/mouse.c.obj.d"
   "macACE.elf"
   "macACE.elf.pdb"
 )

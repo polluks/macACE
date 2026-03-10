@@ -1,5 +1,5 @@
 #include "game.h"
-#include "mouse.h"
+#include "input.h"
 #include <ace/managers/key.h>
 #include <ace/managers/game.h>
 #include <ace/managers/system.h>
@@ -76,7 +76,10 @@ UBYTE boardStateNew[169]; //used to hold the new state of the board after a move
 UBYTE validMoves[169]; //used to hold the valid moves for a selected piece, indexed the same as the board array, 0 = not valid, 1 = valid move. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
 UBYTE specialpos[5]; //four corners and the throne are only for the King
 UBYTE currentPlayer = 1; //0 = defender, 1 = attacker : games start with attacker turn so this is initialised to 1
-UBYTE s_ubBufferIndex = 0; //for double buffering, keeps track of which buffer we're currently drawing to
+UBYTE s_ubBufferIndex = 0; //for double buffering, keeps track of which buffer we're currently drawing to (I don't think i'm doing this yet)
+UBYTE hightlightActive = 0; //whether the highlight for valid moves is currently active, so we know whether to draw it or not in the drawPieces function, and whether to update it when a piece is selected.
+UBYTE highlightIndex = 0; //the index of the currently highlighted square, so we can update the highlight position when a new piece is selected or a move is made.
+
 
 ScreenPos draw_pos[169];
 
@@ -101,14 +104,7 @@ void gameGsCreate(void) {
 
     paletteLoadFromPath("/data/palette/GamePalettev2.plt", s_pVpMain->pPalette, 32);
 
-    pBmBoard = bitmapCreateFromPath("/data/GFX/BG1.bm",0);
-    //add asserts here later to check all this logic
-    for(UWORD x = 0; x < s_pMainBuffer->uBfrBounds.uwX; x+=16){//fills out the background
-    for(UWORD y = 0; y < s_pMainBuffer->uBfrBounds.uwY; y+=16){
-      blitCopyAligned(pBmBoard,x,y,s_pMainBuffer->pBack,x,y,16,16);
-        blitCopyAligned(pBmBoard,x,y,s_pMainBuffer->pFront,x,y,16,16);
-        }
-    }
+   drawBoard(); //draw the board to the back buffer before loading the view, so it's visible when the view loads
     
     gFontSmall = fontCreateFromPath("/data/font/myacefont.fnt");
 
@@ -130,7 +126,7 @@ void gameGsCreate(void) {
     setupPieces(); //sets up the pieces in their starting positions in the board array and in the piece structs
     setupBoard(); //sets up the draw positions for each square on the board in the draw_pos array
     buildBoard(); //sets up the board array with the pieces in their starting positions and the special squares marked
-    drawBoard(); //draws the board and pieces to the screen, will need to be called again every time a piece moves or is captured
+    drawPieces(); //draws the board and pieces to the screen, will need to be called again every time a piece moves or is captured
 
     systemUnuse();
     // Load the view
@@ -143,20 +139,29 @@ void gameGsLoop(void) {
     if(keyCheck(KEY_ESCAPE)) {
       gameExit();
     }
+
+    short mouseX = mouseGetX(MOUSE_PORT_1);
+    short mouseY = mouseGetY(MOUSE_PORT_1);
+
     //Do mouse stuff here to select and move pieces, check for captures and wins, etc.
-  
-    UWORD mouseX = mouseGetX(MOUSE_PORT_1);
-    UWORD mouseY = mouseGetY(MOUSE_PORT_1);
-    
-    pBmMouseCursor->wX = mouseX;
-    pBmMouseCursor->wY = mouseY;
-    
-    spriteProcess(pBmMouseCursor);
-    spriteProcessChannel(CURSOR_SPRITE_CHANNEL);
+    updateMousepos(mouseX, mouseY);
+
     //redraw the board and pieces every frame, for now we can optimize this later by only redrawing the squares that changed when a piece moves or is captured, but for now this is simpler 
     //to implement and works fine performance-wise since it's a small board and not many pieces.
-    drawBoard();
-    
+    //use a memcmp when the board states is completed.
+    drawPieces();
+    if(mouseCheck(MOUSE_PORT_1, MOUSE_LMB)){
+      onClick(mouseX, mouseY);
+    } else if(mouseCheck(MOUSE_PORT_1, MOUSE_RMB)){
+      if (hightlightActive) {
+        hightlightActive = 0; 
+        drawBoard(); //redraw the background to erase the old highlight
+      }
+      //for testing, right click to switch player turns without making a move
+    }
+    if (hightlightActive){ //if the highlight for valid moves is active, draw it
+      drawSquarehighlight();
+    }
     s_ubBufferIndex = !s_ubBufferIndex; //toggle the buffer index for double buffering    
      
     //switch to next player
@@ -172,10 +177,10 @@ void gameGsLoop(void) {
   find the board position given the mouse x/y and the draw_pos array
   check if there's a piece in that position that belongs to the current player using the boardState array
   if there is, calculate the valid moves for that piece and populate the validMoves array
-  then when the player clicks a valid move, update the piece's position in its struct and update the boardState array, then call drawBoard() to update the screen. 
+  then when the player clicks a valid move, update the piece's position in its struct and update the boardState array, then call drawPieces() to update the screen. 
   After that, check for captures by looking at the squares around the moved piece in the boardState array, if there's an enemy piece there, 
   check if it's surrounded on the other side by a friendly piece or a special square, if it is, mark it as captured in its struct and update the boardState array to remove it from the board, 
-  then call drawBoard() again to update the screen. 
+  then call drawPieces() again to update the screen. 
   Finally, check for wins by seeing if the king is captured or if he reaches a corner, and if so, end the game and show a win screen.
   
   */
@@ -290,7 +295,7 @@ void buildBoard(void){
 }
 //draws the pieces to the screen, will need to be called again every time a piece moves or is captured
 //Look to make this more efficent later by only redrawing the squares that changed when a piece moves or is captured.
-void drawBoard(void){ 
+void drawPieces(void){ 
   for (UBYTE i = 0; i < 169; i++){
     if(boardState[i] == 1){ //defender
       for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
@@ -334,6 +339,53 @@ void drawBoard(void){
   }
 }
 
-void createMouseCursor(void){
-  //initialise mouse cursor sprite and mask here, then set it as the active cursor with mouseSetCursor() so we can use it for piece selection and movement.
+void drawBoard(void){
+   pBmBoard = bitmapCreateFromPath("/data/GFX/BG1.bm",0);
+    //add asserts here later to check all this logic
+    for(UWORD x = 0; x < s_pMainBuffer->uBfrBounds.uwX; x+=16){//fills out the background
+    for(UWORD y = 0; y < s_pMainBuffer->uBfrBounds.uwY; y+=16){
+      blitCopyAligned(pBmBoard,x,y,s_pMainBuffer->pBack,x,y,16,16);
+        blitCopyAligned(pBmBoard,x,y,s_pMainBuffer->pFront,x,y,16,16);
+        }
+    }
+}
+void updateMousepos(short mouseX, short mouseY){
+  pBmMouseCursor->wX = mouseX;
+  pBmMouseCursor->wY = mouseY;
+    
+  spriteProcess(pBmMouseCursor);
+  spriteProcessChannel(CURSOR_SPRITE_CHANNEL);
+}
+
+void onClick(short mouseX, short mouseY){
+  for(UBYTE i = 0; i < 169; i++){
+    //check if the mouse is within the bounds of this square
+    if(mouseX >= draw_pos[i].x && mouseX <= draw_pos[i].x + SQUARE_X &&
+       mouseY >= draw_pos[i].y && mouseY <= draw_pos[i].y + SQUARE_Y){
+         logWrite("Clicked on square index %d\n", i); 
+         if(hightlightActive){
+           hightlightActive = 0; 
+            //redraw the background to erase the old highlight
+          //  blitCopyMask(pBmSquareHighlight_BG,0,0,
+          //   s_pMainBuffer->pBack, draw_pos[highlightIndex].x, draw_pos[highlightIndex].y,
+          //   32, 32, pBmSquareHighlight_Mask->Planes[0]);
+         }
+         hightlightActive = 1; //activate the highlight for valid moves
+         highlightIndex = i; //set the highlight index to the square that was clicked, so
+        
+         break; //exit the loop once we've found the square that was clicked
+    }
+  }
+}
+
+void drawSquarehighlight(void){
+  //this function will be used to draw the highlight for valid moves and selected pieces, it will be called in the drawPieces function if the highlightActive variable is true, and the position will be determined by the highlightIndex variable which will be set when a piece is selected or a move is made.
+  if(hightlightActive){
+    blitCopy(s_pMainBuffer->pBack, draw_pos[highlightIndex].x, draw_pos[highlightIndex].y,pBmSquareHighlight_BG, 
+    0, 0,32, 32, MINTERM_COOKIE); //copy the background to the highlight's BG bitmap for later restoration when it moves
+
+    blitCopyMask(pBmSquareHighlight,0,0,
+    s_pMainBuffer->pBack, draw_pos[highlightIndex].x, draw_pos[highlightIndex].y,
+    32, 32, pBmSquareHighlight_Mask->Planes[0]);
+  }
 }

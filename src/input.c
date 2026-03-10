@@ -1,4 +1,4 @@
-#include "mouse.h"
+#include "input.h"
 #include <ace/managers/mouse.h>
 #include <ace/managers/key.h>
 #include <ace/managers/joy.h>

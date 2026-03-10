@@ -7,7 +7,7 @@
 #include "src/game.h"
 #include "src/menu.h"
 #include "src/states.h"
-#include "src/mouse.h"
+#include "src/input.h"
 
 tStateManager *g_pStateManager;
 tState *g_pGameState;

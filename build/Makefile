@@ -274,6 +274,30 @@ src/game.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/game.c.s
 .PHONY : src/game.c.s
 
+src/input.obj: src/input.c.obj
+.PHONY : src/input.obj
+
+# target to build an object file
+src/input.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/input.c.obj
+.PHONY : src/input.c.obj
+
+src/input.i: src/input.c.i
+.PHONY : src/input.i
+
+# target to preprocess a source file
+src/input.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/input.c.i
+.PHONY : src/input.c.i
+
+src/input.s: src/input.c.s
+.PHONY : src/input.s
+
+# target to generate assembly for a file
+src/input.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/input.c.s
+.PHONY : src/input.c.s
+
 src/menu.obj: src/menu.c.obj
 .PHONY : src/menu.obj
 
@@ -298,30 +322,6 @@ src/menu.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/menu.c.s
 .PHONY : src/menu.c.s
 
-src/mouse.obj: src/mouse.c.obj
-.PHONY : src/mouse.obj
-
-# target to build an object file
-src/mouse.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/mouse.c.obj
-.PHONY : src/mouse.c.obj
-
-src/mouse.i: src/mouse.c.i
-.PHONY : src/mouse.i
-
-# target to preprocess a source file
-src/mouse.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/mouse.c.i
-.PHONY : src/mouse.c.i
-
-src/mouse.s: src/mouse.c.s
-.PHONY : src/mouse.s
-
-# target to generate assembly for a file
-src/mouse.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/macACE.elf.dir/build.make CMakeFiles/macACE.elf.dir/src/mouse.c.s
-.PHONY : src/mouse.c.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -345,12 +345,12 @@ help:
 	@echo "... src/game.obj"
 	@echo "... src/game.i"
 	@echo "... src/game.s"
+	@echo "... src/input.obj"
+	@echo "... src/input.i"
+	@echo "... src/input.s"
 	@echo "... src/menu.obj"
 	@echo "... src/menu.i"
 	@echo "... src/menu.s"
-	@echo "... src/mouse.obj"
-	@echo "... src/mouse.i"
-	@echo "... src/mouse.s"
 .PHONY : help
 
 
