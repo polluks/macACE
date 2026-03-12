@@ -37,6 +37,7 @@ void buildBoard(void);
 void setupBoard(void);
 void setupPieces(void);
 void loadAssets(void);
+void getValidMoves(void);
 //void movePiece(g_piece *piece, UBYTE newPos);
 //void checkForCaptures(g_piece *movedPiece);
 void checkForWin(void);

@@ -81,6 +81,7 @@ UBYTE hightlightActive = 0; //whether the highlight for valid moves is currently
 UBYTE lastHighlightIndex[2] = {0, 0}; //the index of the last highlighted square, so we can restore the background when the highlight moves to a new square. This is needed because the highlight is drawn directly to the back buffer and not as a sprite, so we have to manually restore the background when it moves.
 UBYTE highlightIndex = 0; //the index of the currently highlighted square, so we can update the highlight position when a new piece is selected or a move is made.
 UBYTE pBm_hasBGToRestore[2] = {0, 0};//[2] = {0,0};
+UBYTE validGeneration = 1; //used for tracking valid moves in the valid moves array. 
 
 ScreenPos draw_pos[169];
 
@@ -152,12 +153,13 @@ void gameGsLoop(void) {
     
     if(mouseCheck(MOUSE_PORT_1, MOUSE_LMB)){
       onClick(mouseX, mouseY);
+      getValidMoves();
     } else if(mouseCheck(MOUSE_PORT_1, MOUSE_RMB)){
       if (hightlightActive) {
         hightlightActive = 0; 
-        drawBoard(); //redraw the background to erase the old highlight
+        drawBoard(); //not for real, just here so I can clear the board easy for testing.
       }
-      //for testing, right click to switch player turns without making a move
+    
     }
     if (hightlightActive){ //if the highlight for valid moves is active, draw it
       drawSquareHighlight();
@@ -262,6 +264,8 @@ void buildBoard(void){
     for(int i = 0; i < 169; i++){
         boardState[i] = 0;
     }
+    //copy the blank intinlised board into the valid moves array.
+    memcpy(boardState,validMoves,sizeof(boardState));
     //place the pieces on the board according to their positions in the piece structs
     for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
         if(defenders[j].type == KING){
@@ -373,15 +377,25 @@ void onClick(short mouseX, short mouseY){
             logWrite("Undraw Highlighted Index = %d\n", highlightIndex);
             hightlightActive = 0; 
          }
-
+         //To add : Is the desired square:
+         // Occupied
+         //Occupied by your team.
+         //If no then abort, else if yes continue
          hightlightActive = 1; //activate the highlight for valid moves
          highlightIndex = i; //set the highlight index to the square that was clicked, so
          logWrite("Highlighted Index = %d\n", highlightIndex);
+         //getValidMoves();
          break; //exit the loop once we've found the square that was clicked
     }
   }
 }
-
+/*
+TODO (not in any particular order):
+- Use the current player var to check weather a person is allowed to select a piece.
+- calculate the valid moves for a selected piece and populate the validMoves array, then draw the highlights for those squares in the drawSquareHighlight function.
+- When a piece is moved, update the piece's position in its struct and update the boardState array, then call drawPieces() to update the screen. 
+- After that, check for captures by looking at the squares around the moved piece in the boardState array, if there's an enemy piece there, check if it's surrounded on the other side by a friendly piece or a special square,
+*/
 void drawSquareHighlight(void){
   //this function will be used to draw the highlight for valid moves and selected pieces, it will be called in the drawPieces function if the highlightActive variable is true, and the position will be determined by the highlightIndex variable which will be set when a piece is selected or a move is made.
   if(!hightlightActive) return;
@@ -405,4 +419,63 @@ void drawSquareHighlight(void){
 
   pBm_hasBGToRestore[s_ubBufferIndex] = 1;
   lastHighlightIndex[s_ubBufferIndex] = highlightIndex; //update the last highlighted index to the current one
+}
+
+void getValidMoves(void){
+  /*In the Python version 
+  Checks the whole board
+    -Checks for coloum Moves
+    -Check Vertical Moves
+  */
+
+  //***Check Rows***/
+
+  //First check if the square is unoccupid, if it is then stop.
+  if(boardState[highlightIndex] == 0){
+    return;
+  }
+
+  //clear the valid moves array so last click doesn't polute the array.
+  //replace this with the generation system later.
+  memset(validMoves, 0, sizeof(validMoves));
+
+  //lets check the rows which are +1 and -1
+  for(UBYTE r = (highlightIndex +1); r < 169; r++){ //rows in the + direction
+    //if the square is occupied, break
+    if(boardState[r] > 0){
+      break; //if greater than 0 it means th square is occupied, a special square or out of bounds and invalid
+    }
+    validMoves[r] = 5; //add the current position to the valid moves array. Made 5 so not to be confused with pieces or specical positions
+  }
+  //needs the minus (or plus) so the index doesn't start on the piece selected and auto fails.
+  for(UBYTE u = (highlightIndex - 1); u < 169; u--){ //rows in the + direction
+ 
+    if(boardState[u] > 0){
+      break; 
+    }
+    validMoves[u] = 5; 
+  }
+  for(UBYTE c = (highlightIndex +13); c < 169; c=c+13){ 
+  
+    if(boardState[c] > 0){
+      break;
+    }
+    validMoves[c] = 5; 
+  }
+  /* **Check Coloums** */
+  for(UBYTE y = (highlightIndex -13); y < 169; y=y-13){ //rows in the + direction
+   
+    if(boardState[y] > 0){
+      break; 
+    }
+    validMoves[y] = 5; 
+  }
+  
+  
+  //Debuging
+  for(UBYTE i = 0; i < 169; i++){
+    if(validMoves[i] > 0){
+      logWrite("Valid Moves at Square %d\n",i);
+    }
+  }
 }
