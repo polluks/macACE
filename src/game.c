@@ -74,14 +74,13 @@ ULONG startTime;
 UBYTE boardState[169]; // flattened 13x13 board array, each index corresponds to a square on the board. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
 UBYTE boardStateNew[169]; //used to hold the new state of the board after a move, here we can check for captures, wins etc before doing a compare and draw the difference.
 UBYTE validMoves[169]; //used to hold the valid moves for a selected piece, indexed the same as the board array, 0 = not valid, 1 = valid move. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
-UBYTE specialpos[5]; //four corners and the throne are only for the King
 UBYTE currentPlayer = 1; //0 = defender, 1 = attacker : games start with attacker turn so this is initialised to 1
 UBYTE s_ubBufferIndex = 0; //for double buffering, keeps track of which buffer we're currently drawing to (I don't think i'm doing this yet)
 UBYTE hightlightActive = 0; //whether the highlight for valid moves is currently active, so we know whether to draw it or not in the drawPieces function, and whether to update it when a piece is selected.
 UBYTE lastHighlightIndex[2] = {0, 0}; //the index of the last highlighted square, so we can restore the background when the highlight moves to a new square. This is needed because the highlight is drawn directly to the back buffer and not as a sprite, so we have to manually restore the background when it moves.
 UBYTE highlightIndex = 0; //the index of the currently highlighted square, so we can update the highlight position when a new piece is selected or a move is made.
 UBYTE pBm_hasBGToRestore[2] = {0, 0};//[2] = {0,0};
-UBYTE validGeneration = 1; //used for tracking valid moves in the valid moves array. 
+UBYTE validGeneration = 0; //used for tracking valid moves in the valid moves array. 
 
 ScreenPos draw_pos[169];
 
@@ -154,6 +153,7 @@ void gameGsLoop(void) {
     if(mouseCheck(MOUSE_PORT_1, MOUSE_LMB)){
       onClick(mouseX, mouseY);
       getValidMoves();
+      movePiece();
     } else if(mouseCheck(MOUSE_PORT_1, MOUSE_RMB)){
       if (hightlightActive) {
         hightlightActive = 0; 
@@ -215,7 +215,7 @@ void setupPieces(void){
   
   UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
     17,18,19,20,21,32,
-    63,76,88,89,102,115, //something in this  row isn't working. 
+    63,76,88,89,102,115,  
     79,66,53,92,105,80,
     147,148,149,150,151,136
   };
@@ -241,6 +241,7 @@ void setupPieces(void){
   }
 }
 
+//sets up the draw positions for each square on the board in the draw_pos array, which is indexed the same as the board array, so we can easily get the screen position for any square on the board when we need to draw pieces or highlights.
 void setupBoard(void){
   for(UBYTE y = 0; y < 13; y++){
     for(UBYTE x = 0; x < 13; x++){
@@ -264,8 +265,14 @@ void buildBoard(void){
     for(int i = 0; i < 169; i++){
         boardState[i] = 0;
     }
-    //copy the blank intinlised board into the valid moves array.
-    memcpy(boardState,validMoves,sizeof(boardState));
+
+    //set up the special positions for the corners and throne
+    boardState[13] = 4; //top left corner
+    boardState[24] = 4; //top right corner
+    boardState[144] = 4; //bottom left corner
+    boardState[154] = 4; //bottom right corner
+    boardState[84] = 4; //throne in the middle
+
     //place the pieces on the board according to their positions in the piece structs
     for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
         if(defenders[j].type == KING){
@@ -293,13 +300,6 @@ void buildBoard(void){
         logWrite("Board POS: %d is %d \n", i, boardState[i]);
     }
     #endif
-
-    //set up the special positions for the corners and throne
-    specialpos[0] = 13; //top left corner
-    specialpos[1] = 24; //top right corner
-    specialpos[2] = 144; //bottom left corner
-    specialpos[3] = 154; //bottom right corner
-    specialpos[4] = 84; //throne in the middle
 }
 //draws the pieces to the screen, will need to be called again every time a piece moves or is captured
 //Look to make this more efficent later by only redrawing the squares that changed when a piece moves or is captured.
@@ -392,7 +392,6 @@ void onClick(short mouseX, short mouseY){
 /*
 TODO (not in any particular order):
 - Use the current player var to check weather a person is allowed to select a piece.
-- calculate the valid moves for a selected piece and populate the validMoves array, then draw the highlights for those squares in the drawSquareHighlight function.
 - When a piece is moved, update the piece's position in its struct and update the boardState array, then call drawPieces() to update the screen. 
 - After that, check for captures by looking at the squares around the moved piece in the boardState array, if there's an enemy piece there, check if it's surrounded on the other side by a friendly piece or a special square,
 */
@@ -421,61 +420,96 @@ void drawSquareHighlight(void){
   lastHighlightIndex[s_ubBufferIndex] = highlightIndex; //update the last highlighted index to the current one
 }
 
+/* This function will calculate the valid moves for the currently highlighted piece and populate the validMoves array, which is indexed the same as the board array, with a value over 0 for valid moves and 0 for invalid moves.*/
 void getValidMoves(void){
-  /*In the Python version 
-  Checks the whole board
-    -Checks for coloum Moves
-    -Check Vertical Moves
-  */
-
-  //***Check Rows***/
-
+ 
   //First check if the square is unoccupid, if it is then stop.
   if(boardState[highlightIndex] == 0){
     return;
   }
 
-  //clear the valid moves array so last click doesn't polute the array.
-  //replace this with the generation system later.
-  memset(validMoves, 0, sizeof(validMoves));
+  validGeneration++;
 
-  //lets check the rows which are +1 and -1
+  //If generation is 0, it means that the UBYTE has >255 and the array needs reset
+  if(validGeneration == 0){
+    memset(validMoves, 0, sizeof(validMoves));
+    validGeneration = 1;
+  }
+  
+  /* This is no risk of over or under flow. Only 13-154 are valid game squares and only 14-153 are valid for piece movement */
+
+  /*lets check the rows which are +1 and -1 This needs the minus (or plus) so the index doesn't start on the piece selected and auto fails.*/
   for(UBYTE r = (highlightIndex +1); r < 169; r++){ //rows in the + direction
     //if the square is occupied, break
     if(boardState[r] > 0){
       break; //if greater than 0 it means th square is occupied, a special square or out of bounds and invalid
     }
-    validMoves[r] = 5; //add the current position to the valid moves array. Made 5 so not to be confused with pieces or specical positions
+    validMoves[r] = validGeneration; //add the current position to the valid moves array. 
   }
-  //needs the minus (or plus) so the index doesn't start on the piece selected and auto fails.
-  for(UBYTE u = (highlightIndex - 1); u < 169; u--){ //rows in the + direction
- 
+  
+  for(UBYTE u = (highlightIndex - 1); u < 169; u--){ //rows in the - direction
     if(boardState[u] > 0){
       break; 
     }
-    validMoves[u] = 5; 
+    validMoves[u] = validGeneration; 
   }
+
+  /* **Check Coloums** */
+
   for(UBYTE c = (highlightIndex +13); c < 169; c=c+13){ 
-  
     if(boardState[c] > 0){
       break;
     }
-    validMoves[c] = 5; 
+    validMoves[c] = validGeneration; 
   }
-  /* **Check Coloums** */
-  for(UBYTE y = (highlightIndex -13); y < 169; y=y-13){ //rows in the + direction
-   
+  
+  for(UBYTE y = (highlightIndex -13); y < 169; y=y-13){ 
     if(boardState[y] > 0){
       break; 
     }
-    validMoves[y] = 5; 
+    validMoves[y] = validGeneration; 
   }
   
   
-  //Debuging
+  
+  /* Warning, this will not print the full array if you select a square and then quit, you must select another square (empty or not)*/
+  #ifdef OUTPUT_LOGGING
+  logWrite("validGeneration = %d\n", validGeneration);
   for(UBYTE i = 0; i < 169; i++){
-    if(validMoves[i] > 0){
+    if(validMoves[i] == validGeneration){
       logWrite("Valid Moves at Square %d\n",i);
+    }
+  }
+  #endif
+}
+
+void movePiece(void){
+  //This function will move the currently highlighted piece to a new square if it's a valid move,
+  // then update the boardState array and the piece's struct with the new position, and finally call drawPieces() to update the screen. It will also need to check for captures and wins after the move is made.
+  
+  //check if the selected new square is a valid move by checking the validMoves array at the highlightIndex, if it's not valid, return and do nothing
+  //Use lastHighlightIndex, since this is the previous peiece which would be the piece to be actually moved, and the highlightIndex would be the new position which we want to move to, so we check if the highlightIndex is a valid move for the piece at lastHighlightIndex.
+  
+  //This is not working, the if statement isn't right and needs a non tired revision. 
+  if(validMoves[lastHighlightIndex[s_ubBufferIndex]] != validGeneration){
+    logWrite("Invalid move attempted to index %d\n", lastHighlightIndex[s_ubBufferIndex]);
+    return; 
+  }
+  if(currentPlayer == TEAM_DEFENDER){
+    //find the piece that is being moved by checking the boardState at the lastHighlightIndex to see if it's a defender or the king, then loop through the defenders array to find the piece with the matching position and update its position to the new highlightIndex
+    for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
+      if(defenders[j].pos == lastHighlightIndex[s_ubBufferIndex] && !defenders[j].captured){
+        defenders[j].pos = highlightIndex; //update the piece's position in its struct
+        break;
+      }
+    }
+  } else {
+    //do the same for attackers
+    for(UBYTE k = 0; k < MAX_ATTACKERS; k++){
+      if(attackers[k].pos == lastHighlightIndex[s_ubBufferIndex] && !attackers[k].captured){
+        attackers[k].pos = highlightIndex;
+        break;
+      }
     }
   }
 }
