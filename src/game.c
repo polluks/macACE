@@ -31,6 +31,7 @@
 #define CURSOR_SPRITE_WIDTH 16
 #define CURSOR_SPRITE_HEIGHT 18
 #define CURSOR_SPRITE_CHANNEL 5
+
 //#define OUTPUT_LOGGING //uncomment to enable more logging on arrays and positions in the debug.txt file.
 
 /*------Setting Up Viewports-------*/
@@ -74,7 +75,7 @@ ULONG startTime;
 UBYTE boardState[169]; // flattened 13x13 board array, each index corresponds to a square on the board. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
 UBYTE boardStateNew[169]; //used to hold the new state of the board after a move, here we can check for captures, wins etc before doing a compare and draw the difference.
 UBYTE validMoves[169]; //used to hold the valid moves for a selected piece, indexed the same as the board array, 0 = not valid, 1 = valid move. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
-UBYTE currentPlayer = 1; //0 = defender, 1 = attacker : games start with attacker turn so this is initialised to 1
+UBYTE currentPlayer = TEAM_ATTACKER; 
 UBYTE s_ubBufferIndex = 0; //for double buffering, keeps track of which buffer we're currently drawing to (I don't think i'm doing this yet)
 UBYTE hightlightActive = 0; //whether the highlight for valid moves is currently active, so we know whether to draw it or not in the drawPieces function, and whether to update it when a piece is selected.
 UBYTE lastHighlightIndex[2] = {0, 0}; //the index of the last highlighted square, so we can restore the background when the highlight moves to a new square. This is needed because the highlight is drawn directly to the back buffer and not as a sprite, so we have to manually restore the background when it moves.
@@ -157,7 +158,7 @@ void gameGsLoop(void) {
     } else if(mouseCheck(MOUSE_PORT_1, MOUSE_RMB)){
       if (hightlightActive) {
         hightlightActive = 0; 
-        drawBoard(); //not for real, just here so I can clear the board easy for testing.
+       // drawBoard(); //not for real, just here so I can clear the board easy for testing.
       }
     
     }
@@ -167,7 +168,7 @@ void gameGsLoop(void) {
     s_ubBufferIndex = !s_ubBufferIndex; //toggle the buffer index for double buffering    
      
     //switch to next player
-    currentPlayer = (currentPlayer == 0) ? 1 : 0;
+    //currentPlayer = (currentPlayer == 0) ? 1 : 0;
 
     viewProcessManagers(s_pView);
     copProcessBlocks();
@@ -369,37 +370,30 @@ void updateMousepos(short mouseX, short mouseY){
 void onClick(short mouseX, short mouseY){
   for(UBYTE i = 0; i < 169; i++){
     //check if the mouse is within the bounds of this square
-    if(mouseX >= draw_pos[i].x && mouseX <= draw_pos[i].x + (SQUARE_X +1) &&
-       mouseY >= draw_pos[i].y && mouseY <= draw_pos[i].y + (SQUARE_Y +1)){
+    if(mouseX >= draw_pos[i].x && mouseX <= draw_pos[i].x + SQUARE_X &&
+       mouseY >= draw_pos[i].y && mouseY <= draw_pos[i].y + SQUARE_Y){
          logWrite("Clicked on square index %d\n", i); 
          //If a square is already Highlighted, set to zero for it to be restored
          if(hightlightActive){ 
             logWrite("Undraw Highlighted Index = %d\n", highlightIndex);
             hightlightActive = 0; 
          }
-         //To add : Is the desired square:
-         // Occupied
-         //Occupied by your team.
-         //If no then abort, else if yes continue
+         
+         highlightIndex = i; //set the highlight index to the square that was clicked
+
          hightlightActive = 1; //activate the highlight for valid moves
-         highlightIndex = i; //set the highlight index to the square that was clicked, so
          logWrite("Highlighted Index = %d\n", highlightIndex);
-         //getValidMoves();
+        
          break; //exit the loop once we've found the square that was clicked
     }
   }
 }
-/*
-TODO (not in any particular order):
-- Use the current player var to check weather a person is allowed to select a piece.
-- When a piece is moved, update the piece's position in its struct and update the boardState array, then call drawPieces() to update the screen. 
-- After that, check for captures by looking at the squares around the moved piece in the boardState array, if there's an enemy piece there, check if it's surrounded on the other side by a friendly piece or a special square,
-*/
+ //this function will be used to draw the highlight for valid moves and selected pieces, 
+ //it will be called in the drawPieces function if the highlightActive variable is true, and the position will be determined by the highlightIndex variable which will be set when a piece is selected or a move is made.
 void drawSquareHighlight(void){
-  //this function will be used to draw the highlight for valid moves and selected pieces, it will be called in the drawPieces function if the highlightActive variable is true, and the position will be determined by the highlightIndex variable which will be set when a piece is selected or a move is made.
+ 
   if(!hightlightActive) return;
   //First check if there's a background to restore from the last highlighted square, and if the highlight has moved to a new square, restore the background of the old highlighted square before drawing the new one
-  //TBH just having a green version of the highlight bitmap and drawing that into it would of been easier but here we are.
   if(highlightIndex != lastHighlightIndex[s_ubBufferIndex]){
     logWrite("Restoring background for index %d\n", lastHighlightIndex[s_ubBufferIndex]);
     //redraw the background to erase the old highlight
@@ -488,18 +482,23 @@ void movePiece(void){
   // then update the boardState array and the piece's struct with the new position, and finally call drawPieces() to update the screen. It will also need to check for captures and wins after the move is made.
   
   //check if the selected new square is a valid move by checking the validMoves array at the highlightIndex, if it's not valid, return and do nothing
-  //Use lastHighlightIndex, since this is the previous peiece which would be the piece to be actually moved, and the highlightIndex would be the new position which we want to move to, so we check if the highlightIndex is a valid move for the piece at lastHighlightIndex.
-  
-  //This is not working, the if statement isn't right and needs a non tired revision. 
-  if(validMoves[lastHighlightIndex[s_ubBufferIndex]] != validGeneration){
-    logWrite("Invalid move attempted to index %d\n", lastHighlightIndex[s_ubBufferIndex]);
-    return; 
+  if(validMoves[highlightIndex] != validGeneration){
+    logWrite("Invalid move attempted to index %d\n", highlightIndex);
+    return;
   }
+  //This is not working, the if statement isn't right and needs a non tired revision. 
+  
   if(currentPlayer == TEAM_DEFENDER){
     //find the piece that is being moved by checking the boardState at the lastHighlightIndex to see if it's a defender or the king, then loop through the defenders array to find the piece with the matching position and update its position to the new highlightIndex
     for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
       if(defenders[j].pos == lastHighlightIndex[s_ubBufferIndex] && !defenders[j].captured){
         defenders[j].pos = highlightIndex; //update the piece's position in its struct
+        
+        if(defenders[j].type == KING) boardState[highlightIndex] = 3; //update the boardState array with the new position of the piece, 3 for king
+        else boardState[highlightIndex] = 1; //update the boardState array with the new position of the piece, 1 for defender
+        
+        boardState[lastHighlightIndex[s_ubBufferIndex]] = 0; //set the old position to 0 for empty
+        currentPlayer = TEAM_ATTACKER; //swap current player here
         break;
       }
     }
@@ -508,8 +507,14 @@ void movePiece(void){
     for(UBYTE k = 0; k < MAX_ATTACKERS; k++){
       if(attackers[k].pos == lastHighlightIndex[s_ubBufferIndex] && !attackers[k].captured){
         attackers[k].pos = highlightIndex;
+       
+        boardState[highlightIndex] = 2; //update the boardState array with the new position of the piece, 2 for attacker
+        boardState[lastHighlightIndex[s_ubBufferIndex]] = 0; //set the old position to 0 for empty
+        //swap current player here
+        currentPlayer = TEAM_DEFENDER;
         break;
       }
     }
   }
+  hightlightActive = 0; //deactivate the highlight after a move is made
 }
