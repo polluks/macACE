@@ -74,14 +74,17 @@ tTextBitMap *testingbitmap;
 ULONG startTime;
 UBYTE boardState[169]; // flattened 13x13 board array, each index corresponds to a square on the board. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
 UBYTE boardStateNew[169]; //used to hold the new state of the board after a move, here we can check for captures, wins etc before doing a compare and draw the difference.
-UBYTE validMoves[169]; //used to hold the valid moves for a selected piece, indexed the same as the board array, 0 = not valid, 1 = valid move. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
+UBYTE validMoves[169]; //used to hold the valid moves for a selected piece.
 UBYTE currentPlayer = TEAM_ATTACKER; 
-UBYTE s_ubBufferIndex = 0; //for double buffering, keeps track of which buffer we're currently drawing to (I don't think i'm doing this yet)
+UBYTE s_ubBufferIndex = 0; //for double buffering, keeps track of which buffer we're currently drawing to
 UBYTE hightlightActive = 0; //whether the highlight for valid moves is currently active, so we know whether to draw it or not in the drawPieces function, and whether to update it when a piece is selected.
 UBYTE lastHighlightIndex[2] = {0, 0}; //the index of the last highlighted square, so we can restore the background when the highlight moves to a new square. This is needed because the highlight is drawn directly to the back buffer and not as a sprite, so we have to manually restore the background when it moves.
 UBYTE highlightIndex = 0; //the index of the currently highlighted square, so we can update the highlight position when a new piece is selected or a move is made.
-UBYTE pBm_hasBGToRestore[2] = {0, 0};//[2] = {0,0};
+UBYTE HLhasBGToRestore[2] = {0, 0};//[2] = {0,0};
+UBYTE pieceHasBGToRestore[2] = {0, 0}; //used to track whether the piece we're about to draw has a background that needs to be restored when it moves, so we know whether to blit the background before drawing the piece in its new position. This is needed because the pieces are drawn directly to the back buffer and not as sprites, so we have to manually restore the background when they move.
+UBYTE capturedPieceIndex[2] = {0, 0}; //the index of the piece that was captured in the last move, so we can draw the clash FX on top of it and then restore the background after.
 UBYTE validGeneration = 0; //used for tracking valid moves in the valid moves array. 
+UBYTE moveHistory[10]; //Record the move history so we can track for repetions
 
 ScreenPos draw_pos[169];
 
@@ -146,7 +149,7 @@ void gameGsLoop(void) {
     //Do mouse stuff here to select and move pieces, check for captures and wins, etc.
     updateMousepos(mouseX, mouseY);
 
-    //redraw the board and pieces every frame, for now we can optimize this later by only redrawing the squares that changed when a piece moves or is captured, but for now this is simpler 
+    //redraw the board and pieces every frame, 
     //to implement and works fine performance-wise since it's a small board and not many pieces.
     //use a memcmp when the board states is completed.
     drawPieces();
@@ -155,10 +158,12 @@ void gameGsLoop(void) {
       onClick(mouseX, mouseY);
       getValidMoves();
       movePiece();
+      //checkForCaptures(); //change to call only when a piece actually moves.
     } else if(mouseCheck(MOUSE_PORT_1, MOUSE_RMB)){
       if (hightlightActive) {
         hightlightActive = 0; 
-       // drawBoard(); //not for real, just here so I can clear the board easy for testing.
+        resetGame();
+        drawBoard(); //not for real, just here so I can clear the board easy for testing.
       }
     
     }
@@ -166,9 +171,6 @@ void gameGsLoop(void) {
       drawSquareHighlight();
     }
     s_ubBufferIndex = !s_ubBufferIndex; //toggle the buffer index for double buffering    
-     
-    //switch to next player
-    //currentPlayer = (currentPlayer == 0) ? 1 : 0;
 
     viewProcessManagers(s_pView);
     copProcessBlocks();
@@ -211,6 +213,7 @@ void loadAssets(void){
   pBmSquareHighlight_BG[0] = bitmapCreate(32,21,5,0); //size of the highlight sprite, for storing the background when drawing the highlight
   pBmSquareHighlight_BG[1] = bitmapCreate(32,21,5,0); //size of the highlight sprite, for storing the background when drawing the highlight
 }
+
 //sets up the pieces in their starting positions in the board array and in the piece structs
 void setupPieces(void){
   
@@ -259,6 +262,7 @@ void setupBoard(void){
   }
   #endif
 }
+
 //sets up the board array with the pieces in their starting positions and the special squares marked
 void buildBoard(void){
     //0 = empty square, 1 = occupied by defender, 2 = occupied by attacker, 3 = occupied by king, 4 = special square ,99 = dead zone for out of bounds
@@ -304,55 +308,50 @@ void buildBoard(void){
 }
 //draws the pieces to the screen, will need to be called again every time a piece moves or is captured
 //Look to make this more efficent later by only redrawing the squares that changed when a piece moves or is captured.
+//**GEMINI suggestion is to loop through the pieces and not the board tiles, but I think the move logic might be tied into this. */
 void drawPieces(void){ 
   for (UBYTE i = 0; i < 169; i++){
     if(boardState[i] == 1){ //defender
       for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
         if(defenders[j].pos == i && !defenders[j].captured){ //find the defender that is in this position and hasn't been captured, then draw it
-            //copy the background to the piece's BG bitmap for later restoration when it moves
-            blitCopy(s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y, 
-            pBmDefenders_BG[j], 0, 0, 
-            PIECE_SPRITE_WIDTH, PIECE_SPRITE_HEIGHT, MINTERM_COOKIE); 
-              
-            //Then draw the piece with the mask for transparency
-            blitCopyMask(pBmDefenders[j],0,0, 
-            s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
-            PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmDefenders_Mask[j]->Planes[0]);
+          //Then draw the piece with the mask for transparency
+          blitCopyMask(pBmDefenders[j],0,0, 
+          s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
+          PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmDefenders_Mask[j]->Planes[0]);
         }
       }
     } else if(boardState[i] == 2){ //attacker
       for(UBYTE k = 0; k < MAX_ATTACKERS; k++){
-        if(attackers[k].pos == i && !attackers[k].captured){
-            //copy the background to the piece's BG bitmap for later restoration when it moves
-            blitCopy(s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y, 
-            pBmAttackers_BG[k], 0, 0, 
-            PIECE_SPRITE_WIDTH, PIECE_SPRITE_HEIGHT, MINTERM_COOKIE); 
-              
-            //Then draw the piece with the mask for transparency
-            blitCopyMask(pBmAttackers[k],0,0,
-            s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
-            PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmAttackers_Mask[k]->Planes[0]);
+        if(attackers[k].pos == i && !attackers[k].captured){              
+          //Then draw the piece with the mask for transparency
+          blitCopyMask(pBmAttackers[k],0,0,
+          s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
+          PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmAttackers_Mask[k]->Planes[0]);
         }
       }
     } else if(boardState[i] == 3){ //king
-      //copy the background to the king's BG bitmap for later restoration when it moves
-      blitCopy(s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y, 
-      pBmKing_BG, 0, 0,
-      PIECE_SPRITE_WIDTH, PIECE_SPRITE_HEIGHT, MINTERM_COOKIE);
-      
-      //Then draw the king with the mask for transparency
-      blitCopyMask(pBmKing,0,0,
-        s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
-        PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmKing_Mask->Planes[0]);
+    //Then draw the king with the mask for transparency
+    blitCopyMask(pBmKing,0,0,
+      s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
+      PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmKing_Mask->Planes[0]);
     }
+    
     if(hightlightActive == 0){ //if the highlight for valid moves is not active, we can restore the background of the last highlighted square to erase the highlight
-      if(pBm_hasBGToRestore[s_ubBufferIndex]){ //check if there's a background to restore
+      if(HLhasBGToRestore[s_ubBufferIndex]){ //check if there's a background to restore
         blitCopy(pBmBoard, draw_pos[lastHighlightIndex[s_ubBufferIndex]].x, draw_pos[lastHighlightIndex[s_ubBufferIndex]].y,
         s_pMainBuffer->pBack, draw_pos[lastHighlightIndex[s_ubBufferIndex]].x, draw_pos[lastHighlightIndex[s_ubBufferIndex]].y,
         32, 21, MINTERM_COOKIE);
         
-        pBm_hasBGToRestore[s_ubBufferIndex] = 0; //reset the flag after restoring
+        HLhasBGToRestore[s_ubBufferIndex] = 0; //reset the flag after restoring
       }
+    }
+    //issue where pieces cannot move to squares where a piece was captured
+    if(pieceHasBGToRestore[s_ubBufferIndex]){ //if the piece we're about to draw has a background that needs to be restored, restore it before drawing the piece in its new position
+      blitCopy(pBmBoard, draw_pos[capturedPieceIndex[s_ubBufferIndex]].x, draw_pos[capturedPieceIndex[s_ubBufferIndex]].y,
+      s_pMainBuffer->pBack, draw_pos[capturedPieceIndex[s_ubBufferIndex]].x, draw_pos[capturedPieceIndex[s_ubBufferIndex]].y,
+      32, 21, MINTERM_COOKIE);
+      
+      pieceHasBGToRestore[s_ubBufferIndex] = 0; //reset the flag after restoring
     }
   }
 }
@@ -366,6 +365,12 @@ void drawBoard(void){
         blitCopyAligned(pBmBoard,x,y,s_pMainBuffer->pFront,x,y,16,16);
         }
     }
+}
+
+void resetGame(void){
+  setupPieces(); //sets up the pieces in their starting positions in the board array and in the piece structs
+  buildBoard(); //sets up the board array with the pieces in their starting positions and the special squares marked
+  drawPieces(); //draws the board and pieces to the screen, will need to be called again every time a piece moves or is captured
 }
 
 void updateMousepos(short mouseX, short mouseY){
@@ -413,7 +418,7 @@ void drawSquareHighlight(void){
     s_pMainBuffer->pBack, draw_pos[lastHighlightIndex[s_ubBufferIndex]].x, draw_pos[lastHighlightIndex[s_ubBufferIndex]].y,
     32, 21, MINTERM_COOKIE);
     
-    pBm_hasBGToRestore[s_ubBufferIndex] = 0;
+    HLhasBGToRestore[s_ubBufferIndex] = 0;
   }
     
   //Then draw the highlight with the mask for transparency
@@ -421,18 +426,18 @@ void drawSquareHighlight(void){
   s_pMainBuffer->pBack, draw_pos[highlightIndex].x, draw_pos[highlightIndex].y,
   32,21,pBmSquareHighlight_Mask->Planes[0]);
 
-  pBm_hasBGToRestore[s_ubBufferIndex] = 1;
+  HLhasBGToRestore[s_ubBufferIndex] = 1;
   lastHighlightIndex[s_ubBufferIndex] = highlightIndex; //update the last highlighted index to the current one
 }
 
 /* This function will calculate the valid moves for the currently highlighted piece and populate the validMoves array, which is indexed the same as the board array, with a value over 0 for valid moves and 0 for invalid moves.*/
 void getValidMoves(void){
 
-  //First check if the square is unoccupid, if it is then stop.
-  if(boardState[highlightIndex] == 0 || boardState[highlightIndex] == 4 || boardState[highlightIndex] == 99){ //if the square is empty, a special square or out of bounds, there are no valid moves to calculate, so return
+  //First check if the square is empty, a special square or out of bounds, there are no valid moves to calculate, so return
+  if(boardState[highlightIndex] == 0 || boardState[highlightIndex] == 4 || boardState[highlightIndex] == 99){ 
     return;
   }
-
+  //increment valid generation to mark the current valid moves, this way we can avoid having to clear the validMoves array every time.
   validGeneration++;
 
   //If generation is 0, it means that the UBYTE has >255 and the array needs reset
@@ -534,7 +539,10 @@ void movePiece(void){
       if(defenders[j].pos == lastHighlightIndex[s_ubBufferIndex] && !defenders[j].captured){
         defenders[j].pos = highlightIndex; //update the piece's position in its struct
         
-        if(defenders[j].type == KING) boardState[highlightIndex] = 3; //update the boardState array with the new position of the piece, 3 for king
+        if(defenders[j].type == KING) {
+          boardState[highlightIndex] = 3; //update the boardState array with the new position of the piece, 3 for king
+          if (boardState[84] == 0) boardState[84] = 4; //if the king moves off the throne, set the throne to 4 which is a special square. 
+        }
         else boardState[highlightIndex] = 1; //update the boardState array with the new position of the piece, 1 for defender
         
         boardState[lastHighlightIndex[s_ubBufferIndex]] = 0; //set the old position to 0 for empty
@@ -550,12 +558,86 @@ void movePiece(void){
        
         boardState[highlightIndex] = 2; //update the boardState array with the new position of the piece, 2 for attacker
         boardState[lastHighlightIndex[s_ubBufferIndex]] = 0; //set the old position to 0 for empty
-        //swap current player here
+        
         currentPlayer = TEAM_DEFENDER;
         break;
       }
     }
   }
+  checkForCaptures();
   hightlightActive = 0; //deactivate the highlight after a move is made
-  pBm_hasBGToRestore[s_ubBufferIndex] = 1; //set restore flag
+  HLhasBGToRestore[s_ubBufferIndex] = 1; //set restore flag
+}
+
+void checkForCaptures(void){
+  //after a piece is moved, we need to check if it has captured any enemy pieces by looking at the squares around the moved piece in the boardState array, if there's an enemy piece there, 
+  //check if it's surrounded on the other side by a friendly piece or a special square, if it is, mark it as captured in its struct and update the boardState array to remove it from the board, 
+  //then call drawPieces() again to update the screen. 
+
+  //These will give the teams the pieces at those indexs are, not the indexes themselves.
+  UBYTE RIGHT = boardState[highlightIndex +1]; 
+  UBYTE LEFT = boardState[highlightIndex -1];
+  UBYTE UP = boardState[highlightIndex -13];
+  UBYTE DOWN = boardState[highlightIndex +13];
+
+  UBYTE currentPieceTeam = boardState[highlightIndex]; //the piece that was just moved, used to check which team it belongs to for capture rules
+  UBYTE isKing = (currentPieceTeam == 3); //whether the piece that was just moved is the king, since the king has different capture rules and can only be captured by being surrounded on all four sides.
+  
+  UBYTE RIGHTINDEX = highlightIndex +1; //the index of the square to the right of the moved piece, used to check for captures in that direction
+  UBYTE LEFTINDEX = highlightIndex -1;
+  UBYTE UPINDEX = highlightIndex -13;
+  UBYTE DOWNINDEX = highlightIndex +13;
+  
+  //check the squares around the piece but only out to one space if not blank, out of bounds or on the same team, continue.
+  if(RIGHT > 0 && RIGHT < 10 &&  RIGHT != currentPieceTeam){ 
+    logWrite("Checking +1 Pos at index %d",boardState[highlightIndex]);
+    //work out the team here?
+
+    //is the piece the king, in which case we need to see if all four sides are surrounded by attackers
+    if(isKing){
+      //king is captured, game over, attackers win
+      logWrite("King captured, attackers win!");
+      //go to the king capture helper function to follow king capture rules.
+    }
+    else if((boardState[RIGHTINDEX + 1]) == currentPieceTeam || (boardState[RIGHTINDEX + 1] == 4)){ //if the piece on the other side is on the same team or a special square, it's captured
+      //mark the piece as captured in its struct and update the boardState array to remove it from the board 
+      //How to tell which team the piece belongs to? We can check the boardState at the index of the piece to see if it's a defender or attacker, then loop through the corresponding array to find the piece with the matching position and mark it as captured.
+      if(currentPieceTeam == TEAM_DEFENDER|| currentPieceTeam == 3){ //if the piece that moved is a defender or the king, it can only capture attackers
+        for(UBYTE k = 0; k < MAX_ATTACKERS; k++){
+          if(attackers[k].pos == (RIGHTINDEX) && !attackers[k].captured){
+            attackers[k].captured = 2; //mark the piece as captured and needs removed from screen
+            
+            //boardState[RIGHTINDEX] = 0; //update the boardState array to remove it from the board
+            //By setting the above to 0 now, the piece is never found in the drawPieces since it's now a "blank" position
+            break;
+          }
+        }
+      } else if(currentPieceTeam == TEAM_ATTACKER){ //if the piece that moved is an attacker, it can only capture defenders and the king
+        for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
+          if(defenders[j].pos == (RIGHTINDEX) && !defenders[j].captured){ //edge case, what happens when more than one direction has a capture?
+            defenders[j].captured = 1; //mark the piece as captured in its struct
+            capturedPieceIndex[0] = defenders[j].pos; //store the index of the captured piece
+            capturedPieceIndex[1] = defenders[j].pos;
+            pieceHasBGToRestore[0] = 1; //set restore flag
+            pieceHasBGToRestore[1] = 1; //set restore flag
+            boardState[RIGHTINDEX] = 0; //update the boardState array to remove it from the board
+            break;
+          }
+        }
+        logWrite("Piece at index %d captured!", highlightIndex +1);
+      }
+    }
+  }
+
+  if((boardState[highlightIndex -1]) > 0 && (boardState[highlightIndex -1]) < 10){
+
+  }
+  if((boardState[highlightIndex +13]) > 0 && (boardState[highlightIndex +13]) < 10){
+
+  }
+  if((boardState[highlightIndex -13]) > 0 && (boardState[highlightIndex -13]) < 10){
+
+  }
+  //return if no valid pieces or just empty squares around the moved piece
+
 }
