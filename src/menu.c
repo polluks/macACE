@@ -13,60 +13,70 @@
 // #include <stdbool.h>
 // #include <stdlib.h>
 
-#define MENU_HEIGHT	(256-32) //y
-#define MENU_WIDTH	(320) //x
+#define MENU_HEIGHT	256 //y
+#define MENU_WIDTH	320 //x
 
-// static tView *s_pMenuView; //view for all viewports
-// static tVPort *s_pVpMain;//viewport for the menu
-// static tSimpleBufferManager *s_pMainBuffer;
-
-// tFont *menufont;    //font
-// tTextBitMap *menutextbitmap; //bitmap for the font
+static tView *s_pMenuView; //view for all viewports
+static tVPort *s_pVpMain;//viewport for the menu
+static tSimpleBufferManager *s_pMainBuffer;
+//UBYTE gameWinner; //1 for attackers, 2 for defenders, 3 reset signal for the gameLoop to reset the game.
+tFont *menufont;    //font
+tTextBitMap *menutextbitmap; //bitmap for the font
 
 void menuGsCreate(void){
     // //create view port and the display buffer for the main viewport
-    // s_pMenuView = viewCreate(0, TAG_VIEW_GLOBAL_PALETTE, 1, TAG_END);
+    s_pMenuView = viewCreate(0, TAG_VIEW_GLOBAL_PALETTE, 1, TAG_END);
 
-    // s_pVpMain = vPortCreate(0, TAG_VPORT_VIEW, s_pMenuView, TAG_VPORT_BPP, 4, TAG_END);
-    // s_pMainBuffer = simpleBufferCreate(0,TAG_SIMPLEBUFFER_VPORT, s_pVpMain, TAG_SIMPLEBUFFER_BITMAP_FLAGS, BMF_CLEAR, TAG_END);
+    s_pVpMain = vPortCreate(0, TAG_VPORT_VIEW, s_pMenuView, TAG_VPORT_BPP, 4, TAG_END);
+    s_pMainBuffer = simpleBufferCreate(0,TAG_SIMPLEBUFFER_VPORT, s_pVpMain, TAG_SIMPLEBUFFER_BITMAP_FLAGS, BMF_CLEAR, TAG_END);
     
-    // //colour palette for the menu
-    // s_pVpMain->pPalette[0] = 0x0000; //black
-    // s_pVpMain->pPalette[1] = 0xFFFF; //White
+    //colour palette for the menu
+    s_pVpMain->pPalette[0] = 0x0000; //black
+    s_pVpMain->pPalette[1] = 0xFFFF; //White
 
-    // menufont = fontCreate("myacefont.fnt");
-    // menutextbitmap = fontCreateTextBitMapFromStr(menufont, "GAME OVER");
-    // fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 - 16, 1, FONT_COOKIE);
-    // fontDestroyTextBitMap(menutextbitmap);
+    menufont = fontCreateFromPath("/data/font/myacefont.fnt");
+    menutextbitmap = fontCreateTextBitMapFromStr(menufont, "GAME OVER");
+    fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 - 26, 1, FONT_COOKIE);
+    fontDestroyTextBitMap(menutextbitmap);
 
-    // menutextbitmap = fontCreateTextBitMapFromStr(menufont, "Play Again Y N");
-    // fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 56, MENU_HEIGHT / 2 - 5, 1, FONT_COOKIE);
-    // fontDestroyTextBitMap(menutextbitmap);
+    if(gameWinner == 1){
+        menutextbitmap = fontCreateTextBitMapFromStr(menufont, "ATTACKERS WIN");
+        fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 - 16, 1, FONT_COOKIE);
+        fontDestroyTextBitMap(menutextbitmap);
+    }
+    else if(gameWinner == 2){
+        menutextbitmap = fontCreateTextBitMapFromStr(menufont, "DEFENDERS WIN");
+        fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 - 16, 1, FONT_COOKIE);
+        fontDestroyTextBitMap(menutextbitmap); 
+    }
+    menutextbitmap = fontCreateTextBitMapFromStr(menufont, "Play Again Y N");
+    fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 - 5, 1, FONT_COOKIE);
+    fontDestroyTextBitMap(menutextbitmap);
 
-    // systemUnuse();
-    // viewLoad(s_pMenuView);
+    systemUnuse();
+    viewLoad(s_pMenuView);
 }
 
 void menuGsLoop(void){
-    // if(keyCheck(KEY_N)){
-    //     logWrite("getting outta here!\n");
-    //     gameExit();
-    // }
-    // else{
-    //     //logWrite("Looking at that else!\n");
-    //     if(keyCheck(KEY_Y)){
-    //     logWrite("Going back to the Game!\n");
-    //     stateChange(g_pStateManager, g_pGameState);
-    //     logWrite("Switching!\n");
-    //     return;
-    //     }
-    //     copProcessBlocks();
-    //     systemIdleBegin();
-    //     vPortWaitUntilEnd(s_pVpMain);
-    // }
+    if(keyCheck(KEY_N)){
+        logWrite("getting outta here!\n");
+        gameExit();
+    }
+    
+    //logWrite("Looking at that else!\n");
+    if(keyCheck(KEY_Y)){
+        logWrite("Going back to the Game!\n");
+       // gameWinner = 3; //set the reset signal for the game loop to reset the game.
+        stateChange(g_pStateManager, g_pGameState);
+        logWrite("Switching!\n");
+        return;
+    }
+    copProcessBlocks();
+    systemIdleBegin();
+    vPortWaitUntilEnd(s_pVpMain);
 }
 
 void menuGsDestroy(void){
-    // systemUse();
-    // viewDestroy(s_pMenuView);
+    systemUse();
+    viewDestroy(s_pMenuView);
 }

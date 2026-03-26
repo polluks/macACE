@@ -45,5 +45,6 @@ void drawBoard(void);
 void drawPieces(void);
 void drawSquareHighlight(void);
 void resetGame(void);
+void checkGameEnd(void);
 
 #endif // _GAME_H_

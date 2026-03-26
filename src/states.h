@@ -6,4 +6,5 @@
 extern tStateManager *g_pStateManager;
 extern tState *g_pGameState;
 extern tState *g_pMenuState;
+extern UBYTE gameWinner;
 #endif

@@ -56,7 +56,8 @@ CMakeFiles/macACE.elf.dir/src/game.c.obj: /Users/phillipb/Documents/macACE/src/g
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/stdio.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/string.h \
   /Users/phillipb/Documents/macACE/src/game.h \
-  /Users/phillipb/Documents/macACE/src/input.h
+  /Users/phillipb/Documents/macACE/src/input.h \
+  /Users/phillipb/Documents/macACE/src/states.h
 
 CMakeFiles/macACE.elf.dir/src/input.c.obj: /Users/phillipb/Documents/macACE/src/input.c \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/macros.h \

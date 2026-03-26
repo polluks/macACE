@@ -1,5 +1,6 @@
 #include "game.h"
 #include "input.h"
+#include "states.h"
 #include <ace/managers/key.h>
 #include <ace/managers/game.h>
 #include <ace/managers/system.h>
@@ -87,7 +88,7 @@ UBYTE capturedPieceCount[2] = {0,0};
 UBYTE validGeneration = 0; //used for tracking valid moves in the valid moves array. 
 UBYTE moveHistory[10]; //Record the move history so we can track for repetions
 UBYTE longLivetheKing = 0; //flag for when the king is captured.
-
+UBYTE gameWinner = 0; //0 no one, 1 attackers, 2 defenders
 ScreenPos draw_pos[169];
 
 void gameGsCreate(void) {
@@ -126,13 +127,15 @@ void gameGsCreate(void) {
     
     blitCopy(pBmMouseCursorSrc, 0,0,
     pBmMouseCursorData,0,0,CURSOR_SPRITE_WIDTH,CURSOR_SPRITE_HEIGHT,MINTERM_COOKIE);
-    
+
+    gameWinner = 0; //reset the game winner at the start of the game, in case we're coming from the menu after a game has ended.
+
     loadAssets();
     setupPieces(); //sets up the pieces in their starting positions in the board array and in the piece structs
     setupBoard(); //sets up the draw positions for each square on the board in the draw_pos array
     buildBoard(); //sets up the board array with the pieces in their starting positions and the special squares marked
     drawPieces(); //draws the board and pieces to the screen, will need to be called again every time a piece moves or is captured
-
+    currentPlayer = TEAM_ATTACKER; //reset the current player to the attackers at the start of the game, in case we're coming from the menu after a game has ended.
     systemUnuse();
     // Load the view
     viewLoad(s_pView);
@@ -144,7 +147,16 @@ void gameGsLoop(void) {
     if(keyCheck(KEY_ESCAPE)) {
       gameExit();
     }
-
+    if(keyCheck(KEY_R)){
+      if(currentPlayer == TEAM_ATTACKER){
+        gameWinner = 2; //set the winner to defenders, so when we go to the menu it shows the correct win screen.
+      } else {
+        gameWinner = 1; //set the winner to attackers, so when we go to the menu it shows the correct win screen.
+      }
+      stateChange(g_pStateManager, g_pMenuState);
+      return;
+      
+    }
     short mouseX = mouseGetX(MOUSE_PORT_1);
     short mouseY = mouseGetY(MOUSE_PORT_1);
 
@@ -193,6 +205,25 @@ void gameGsLoop(void) {
   */
 void gameGsDestroy(void) {
     systemUse();
+    for(UBYTE i = 0; i < MAX_ATTACKERS; i++){
+      bitmapDestroy(pBmAttackers[i]);
+      bitmapDestroy(pBmAttackers_Mask[i]);
+    }
+    for(UBYTE d = 0; d < MAX_DEFENDERS; d++){
+      bitmapDestroy(pBmDefenders[d]);
+      bitmapDestroy(pBmDefenders_Mask[d]);
+    }
+    bitmapDestroy(pBmKing);
+    //bitmapDestroy(pBmClashFX);
+    //bitmapDestroy(pBmClashFX_Mask);
+    bitmapDestroy(pBmSquareHighlight);
+    bitmapDestroy(pBmSquareHighlight_BG[0]);
+    bitmapDestroy(pBmSquareHighlight_BG[1]);
+    bitmapDestroy(pBmSquareHighlight_Mask);
+
+    systemSetDmaBit(DMAB_SPRITE, 0);
+    spriteManagerDestroy();
+
     bitmapDestroy(pBmBoard);
     viewDestroy(s_pView);
 }
@@ -274,7 +305,7 @@ void buildBoard(void){
     }
 
     //set up the special positions for the corners and throne
-    boardState[13] = 4; //top left corner
+    boardState[14] = 4; //top left corner
     boardState[24] = 4; //top right corner
     boardState[144] = 4; //bottom left corner
     boardState[154] = 4; //bottom right corner
@@ -338,26 +369,41 @@ void drawPieces(void){
       s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
       PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmKing_Mask->Planes[0]);
     }
-    //if the highlight for valid moves is not active, we can restore the background of the last highlighted square to erase the highlight
-    if(hightlightActive == 0){ 
-      if(HLhasBGToRestore[s_ubBufferIndex]){ //check if there's a background to restore
-        blitCopy(pBmBoard, draw_pos[lastHighlightIndex[s_ubBufferIndex]].x, draw_pos[lastHighlightIndex[s_ubBufferIndex]].y,
-        s_pMainBuffer->pBack, draw_pos[lastHighlightIndex[s_ubBufferIndex]].x, draw_pos[lastHighlightIndex[s_ubBufferIndex]].y,
-        32, 21, MINTERM_COOKIE);
-        
-        HLhasBGToRestore[s_ubBufferIndex] = 0; //reset the flag after restoring
-      }
+  }
+  //if the highlight for valid moves is not active, we can restore the background of the last highlighted square to erase the highlight
+  if(hightlightActive == 0){ 
+    if(HLhasBGToRestore[s_ubBufferIndex]){ //check if there's a background to restore
+      blitCopy(pBmBoard, draw_pos[lastHighlightIndex[s_ubBufferIndex]].x, draw_pos[lastHighlightIndex[s_ubBufferIndex]].y,
+      s_pMainBuffer->pBack, draw_pos[lastHighlightIndex[s_ubBufferIndex]].x, draw_pos[lastHighlightIndex[s_ubBufferIndex]].y,
+      32, 21, MINTERM_COOKIE);
+      
+      HLhasBGToRestore[s_ubBufferIndex] = 0; //reset the flag after restoring
     }
-    //if the piece that was just captured has a background that needs to be restored, restore it to erase the piece from the screen
-    if(pieceHasBGToRestore[s_ubBufferIndex]){ 
-      for(UBYTE c = 0; c < capturedPieceCount[s_ubBufferIndex]; c++){
-        blitCopy(pBmBoard, draw_pos[capturedPieceIndex[s_ubBufferIndex][c]].x, draw_pos[capturedPieceIndex[s_ubBufferIndex][c]].y,
-        s_pMainBuffer->pBack, draw_pos[capturedPieceIndex[s_ubBufferIndex][c]].x, draw_pos[capturedPieceIndex[s_ubBufferIndex][c]].y,
-        32, 21, MINTERM_COOKIE);
-      }
-      pieceHasBGToRestore[s_ubBufferIndex] = 0; //reset the flag after restoring
-      capturedPieceCount[s_ubBufferIndex] = 0;
+  }
+  //if the piece that was just captured has a background that needs to be restored, restore it to erase the piece from the screen
+  if(pieceHasBGToRestore[s_ubBufferIndex]){ 
+    for(UBYTE c = 0; c < capturedPieceCount[s_ubBufferIndex]; c++){
+      blitCopy(pBmBoard, draw_pos[capturedPieceIndex[s_ubBufferIndex][c]].x, draw_pos[capturedPieceIndex[s_ubBufferIndex][c]].y,
+      s_pMainBuffer->pBack, draw_pos[capturedPieceIndex[s_ubBufferIndex][c]].x, draw_pos[capturedPieceIndex[s_ubBufferIndex][c]].y,
+      32, 21, MINTERM_COOKIE);
     }
+    pieceHasBGToRestore[s_ubBufferIndex] = 0; //reset the flag after restoring
+    capturedPieceCount[s_ubBufferIndex] = 0;
+  }
+
+  if(currentPlayer == TEAM_ATTACKER){
+    //undraw the clash from the defender side and redraw it on the attacker side
+    blitCopy(pBmBoard, 287, 119,
+    s_pMainBuffer->pBack, 287, 119, PIECE_SPRITE_WIDTH, PIECE_SPRITE_HEIGHT, MINTERM_COOKIE);
+
+    blitCopyMask(pBmClashFX,0,0,
+    s_pMainBuffer->pBack, 0, 119, PIECE_SPRITE_WIDTH, 20, pBmClashFX_Mask->Planes[0]);
+  } else {
+    blitCopy(pBmBoard, 0, 119,
+    s_pMainBuffer->pBack, 0, 119, PIECE_SPRITE_WIDTH, 20, MINTERM_COOKIE);
+
+    blitCopyMask(pBmClashFX,0,0,
+    s_pMainBuffer->pBack, 287, 119, PIECE_SPRITE_WIDTH, 20, pBmClashFX_Mask->Planes[0]);
   }
 }
 
@@ -373,6 +419,7 @@ void drawBoard(void){
 }
 
 void resetGame(void){
+  currentPlayer = TEAM_ATTACKER;
   setupPieces(); //sets up the pieces in their starting positions in the board array and in the piece structs
   buildBoard(); //sets up the board array with the pieces in their starting positions and the special squares marked
   drawPieces(); //draws the board and pieces to the screen, will need to be called again every time a piece moves or is captured
@@ -386,7 +433,6 @@ void resetGame(void){
     capturedPieceIndex[i][3] = 0;
     capturedPieceCount[i] = 0;
   }
-  currentPlayer = TEAM_ATTACKER;
   hightlightActive = 0;
   highlightIndex = 0;
   validGeneration = 0;
@@ -590,6 +636,7 @@ void movePiece(void){
   checkForCaptures();
   hightlightActive = 0; //deactivate the highlight after a move is made
   HLhasBGToRestore[s_ubBufferIndex] = 1; //set restore flag
+  checkGameEnd();
 }
 
 void checkForCaptures(void){
@@ -640,10 +687,11 @@ void checkForCaptures(void){
             pieceHasBGToRestore[0] = 1; //set restore flag
             pieceHasBGToRestore[1] = 1; //set restore flag
             boardState[neighbourIndex] = 0; //update the boardState array to remove it from the board
+            longLivetheKing = 1; //set the flag to indicate the king is captured
           }
           //king is captured, game over, attackers win
           //logWrite("King captured, attackers win!");
-          longLivetheKing = 1; //set the flag to indicate the king is captured
+        
           return; //exit the function since the game is over
         }
 
@@ -691,4 +739,23 @@ void checkForCaptures(void){
         }
       }
   }
+}
+
+void checkGameEnd(void){
+  //if the game ends by either the king being captured or the king escaping, stop the game and restart.
+
+  //if the king is captured, Attackers Win
+  if(longLivetheKing > 0){
+    gameWinner = 1;
+    stateChange(g_pStateManager, g_pMenuState);
+    return;
+  }
+
+  //The King escapes, the Defenders Win
+  else if(boardState[14] == 3 || boardState[24] == 3 || boardState[144] == 3 || boardState[154] == 3){
+    gameWinner = 2;
+    stateChange(g_pStateManager, g_pMenuState);
+    return;
+  }
+  
 }
