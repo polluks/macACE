@@ -411,7 +411,7 @@ void drawPieces(void){
     blitCopyMask(pBmClashFX,0,0,
     s_pMainBuffer->pBack, -1, 119, PIECE_SPRITE_WIDTH, 20, pBmClashFX_Mask->Planes[0]);
   } else {
-    blitCopy(pBmBoard, 0, 119,
+    blitCopy(pBmBoard, -1, 119,
     s_pMainBuffer->pBack, -1, 119, PIECE_SPRITE_WIDTH, 20, MINTERM_COOKIE);
 
     blitCopyMask(pBmClashFX,0,0,

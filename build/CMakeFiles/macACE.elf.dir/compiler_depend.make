@@ -77,6 +77,7 @@ CMakeFiles/macACE.elf.dir/src/menu.c.obj: /Users/phillipb/Documents/macACE/src/m
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/key.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/log.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/memory.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/sprite.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/state.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/system.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/managers/timer.h \
@@ -88,12 +89,14 @@ CMakeFiles/macACE.elf.dir/src/menu.c.obj: /Users/phillipb/Documents/macACE/src/m
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/extview.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/file.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/font.h \
+  /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/palette.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/string.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/ace/utils/tag.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/printf.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/stdio.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/stdlib.h \
   /Users/phillipb/Documents/macACE/deps/ace/include/mini_std/string.h \
+  /Users/phillipb/Documents/macACE/src/input.h \
   /Users/phillipb/Documents/macACE/src/menu.h \
   /Users/phillipb/Documents/macACE/src/states.h
 
