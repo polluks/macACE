@@ -33,7 +33,7 @@
 #define CURSOR_SPRITE_WIDTH 16
 #define CURSOR_SPRITE_HEIGHT 18
 #define CURSOR_SPRITE_CHANNEL 5
-#define MAX_CAPTURES_PM 4
+#define MAX_CAPTURES_PM 9 //nine is the therotical max number of pieces that could ever be captured.
 //#define OUTPUT_LOGGING //uncomment to enable more logging on arrays and positions in the debug.txt file.
 
 /*------Setting Up Viewports-------*/
@@ -96,9 +96,9 @@ ScreenPos draw_pos[169];
 
 void gameGsCreate(void) {
 
-    tRayPos sRayPos = getRayPos();
+    // tRayPos sRayPos = getRayPos();
 
-    s_pRandManager = randCreate(1+(sRayPos.bfPosY << 8), 1 + sRayPos.bfPosX);
+    // s_pRandManager = randCreate(1+(sRayPos.bfPosY << 8), 1 + sRayPos.bfPosX);
 
     s_pView = viewCreate(0,TAG_VIEW_GLOBAL_PALETTE, 1,TAG_END);
 
@@ -113,16 +113,16 @@ void gameGsCreate(void) {
     TAG_SIMPLEBUFFER_IS_DBLBUF, 1, //add this line in for double buffering
     TAG_END);
 
-    paletteLoadFromPath("/data/palette/GamePalettev2.plt", s_pVpMain->pPalette, 32);
+    paletteLoadFromPath("data/palette/GamePalettev2.plt", s_pVpMain->pPalette, 32);
 
     drawBoard(); //draw the board to the back buffer before loading the view, so it's visible when the view loads
     
-    gFontSmall = fontCreateFromPath("myacefont.fnt");
+    gFontSmall = fontCreateFromPath("data/font/myacefont.fnt");
     
     spriteManagerCreate(s_pView, 0, NULL);
     systemSetDmaBit(DMAB_SPRITE, 1);
 
-    pBmMouseCursorSrc = bitmapCreateFromPath("/data/GFX/mousepointer.bm",0);
+    pBmMouseCursorSrc = bitmapCreateFromPath("data/GFX/mousepointer.bm",0);
     pBmMouseCursorData = bitmapCreate(CURSOR_SPRITE_WIDTH,CURSOR_SPRITE_HEIGHT,2,BMF_INTERLEAVED | BMF_CLEAR);
     pSMouseCursor = spriteAdd(CURSOR_SPRITE_CHANNEL,pBmMouseCursorData);
 
@@ -142,9 +142,12 @@ void gameGsCreate(void) {
     buildBoard(); //sets up the board array with the pieces in their starting positions and the special squares marked
     drawPieces(); //draws the board and pieces to the screen, will need to be called again every time a piece moves or is captured
     currentPlayer = TEAM_ATTACKER; //reset the current player to the attackers at the start of the game, in case we're coming from the menu after a game has ended.
+    
+    
     systemUnuse();
     // Load the view
     viewLoad(s_pView);
+  
 }
 
 
@@ -175,8 +178,8 @@ void gameGsLoop(void) {
     drawPieces();
     
     
-    fontDrawTextBitMap(s_pMainBuffer->pBack, gametextbitmapattack, 5,110,0,FONT_COOKIE);
-    fontDrawTextBitMap(s_pMainBuffer->pBack, gametextbitmapdefend, 294,110,0,FONT_COOKIE);
+    fontDrawTextBitMap(s_pMainBuffer->pBack, gametextbitmapattack, 6,110,0,FONT_COOKIE);
+    fontDrawTextBitMap(s_pMainBuffer->pBack, gametextbitmapdefend, 295,110,0,FONT_COOKIE);
 
     if(mouseCheck(MOUSE_PORT_1, MOUSE_LMB)){
       onClick(mouseX, mouseY);
@@ -242,19 +245,19 @@ void gameGsDestroy(void) {
 //loads in the game assets, including the piece sprites and their masks for blitting with transparency.
 void loadAssets(void){
   for(UBYTE i = 0; i < MAX_ATTACKERS; i++){
-    pBmAttackers[i] = bitmapCreateFromPath("/data/GFX/attackers.bm",0);
-    pBmAttackers_Mask[i] = bitmapCreateFromPath("/data/GFX/attackers_mask.bm",0);
+    pBmAttackers[i] = bitmapCreateFromPath("data/GFX/attackers.bm",0);
+    pBmAttackers_Mask[i] = bitmapCreateFromPath("data/GFX/attackers_mask.bm",0);
   }
   for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
-    pBmDefenders[j] = bitmapCreateFromPath("/data/GFX/defenders.bm",0);
-    pBmDefenders_Mask[j] = bitmapCreateFromPath("/data/GFX/defenders_mask.bm",0);
+    pBmDefenders[j] = bitmapCreateFromPath("data/GFX/defenders.bm",0);
+    pBmDefenders_Mask[j] = bitmapCreateFromPath("data/GFX/defenders_mask.bm",0);
   }
-  pBmKing = bitmapCreateFromPath("/data/GFX/king.bm",0);
-  pBmKing_Mask = bitmapCreateFromPath("/data/GFX/king_mask.bm",0);
-  pBmClashFX = bitmapCreateFromPath("/data/GFX/clashFX.bm",0);
-  pBmClashFX_Mask = bitmapCreateFromPath("/data/GFX/clashFX_mask.bm",0);
-  pBmSquareHighlight = bitmapCreateFromPath("/data/GFX/squarehighlight.bm",0);
-  pBmSquareHighlight_Mask = bitmapCreateFromPath("/data/GFX/squarehighlight_mask.bm",0);
+  pBmKing = bitmapCreateFromPath("data/GFX/king.bm",0);
+  pBmKing_Mask = bitmapCreateFromPath("data/GFX/king_mask.bm",0);
+  pBmClashFX = bitmapCreateFromPath("data/GFX/clashFX.bm",0);
+  pBmClashFX_Mask = bitmapCreateFromPath("data/GFX/clashFX_mask.bm",0);
+  pBmSquareHighlight = bitmapCreateFromPath("data/GFX/squarehighlight.bm",0);
+  pBmSquareHighlight_Mask = bitmapCreateFromPath("data/GFX/squarehighlight_mask.bm",0);
   pBmSquareHighlight_BG[0] = bitmapCreate(32,21,5,0); //size of the highlight sprite, for storing the background when drawing the highlight
   pBmSquareHighlight_BG[1] = bitmapCreate(32,21,5,0); //size of the highlight sprite, for storing the background when drawing the highlight
 }
@@ -262,17 +265,25 @@ void loadAssets(void){
 //sets up the pieces in their starting positions in the board array and in the piece structs
 void setupPieces(void){
   
-  UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
+  // UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
+  //   17,18,19,20,21,32,
+  //   63,76,88,89,102,115,  
+  //   79,66,53,92,105,80,
+  //   147,148,149,150,151,136
+  // };
+   UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
     17,18,19,20,21,32,
     63,76,88,89,102,115,  
     79,66,53,92,105,80,
-    147,148,149,150,151,136
+    147,148,150,151,152,137 //checking shield wall
   };
 
+  // UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
+  //   84,58,70,71,72,82,83,85,86,96,97,98,110
+  // };
   UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
-    84,58,70,71,72,82,83,85,86,96,97,98,110
+    84,58,70,71,72,82,83,85,86,133,134,135,149
   };
-
   // Set up the defenders
   for(int i = 0; i < MAX_DEFENDERS; i++){
     defenders[i].type = (i == 0) ? KING : DEFENDER; // First piece is the king, the rest are defenders
@@ -405,17 +416,17 @@ void drawPieces(void){
 
   if(currentPlayer == TEAM_ATTACKER){
     //undraw the clash from the defender side and redraw it on the attacker side
-    blitCopy(pBmBoard, 287, 119,
-    s_pMainBuffer->pBack, 287, 119, PIECE_SPRITE_WIDTH, PIECE_SPRITE_HEIGHT, MINTERM_COOKIE);
+    blitCopy(pBmBoard, 288, 119,
+    s_pMainBuffer->pBack, 288, 119, PIECE_SPRITE_WIDTH, PIECE_SPRITE_HEIGHT, MINTERM_COOKIE);
 
     blitCopyMask(pBmClashFX,0,0,
-    s_pMainBuffer->pBack, -1, 119, PIECE_SPRITE_WIDTH, 20, pBmClashFX_Mask->Planes[0]);
+    s_pMainBuffer->pBack, 0, 119, PIECE_SPRITE_WIDTH, 20, pBmClashFX_Mask->Planes[0]);
   } else {
-    blitCopy(pBmBoard, -1, 119,
-    s_pMainBuffer->pBack, -1, 119, PIECE_SPRITE_WIDTH, 20, MINTERM_COOKIE);
+    blitCopy(pBmBoard, 0, 119,
+    s_pMainBuffer->pBack, 0, 119, PIECE_SPRITE_WIDTH, 20, MINTERM_COOKIE);
 
     blitCopyMask(pBmClashFX,0,0,
-    s_pMainBuffer->pBack, 287, 119, PIECE_SPRITE_WIDTH, 20, pBmClashFX_Mask->Planes[0]);
+    s_pMainBuffer->pBack, 288, 119, PIECE_SPRITE_WIDTH, 20, pBmClashFX_Mask->Planes[0]);
   }
 }
 
@@ -466,19 +477,19 @@ void onClick(short mouseX, short mouseY){
     //check if the mouse is within the bounds of this square
     if(mouseX >= draw_pos[i].x && mouseX <= draw_pos[i].x + SQUARE_X &&
        mouseY >= draw_pos[i].y && mouseY <= draw_pos[i].y + SQUARE_Y){
-         logWrite("Clicked on square index %d\n", i); 
+        // logWrite("Clicked on square index %d\n", i); 
          //If a square is already Highlighted, set to zero for it to be restored
          if(!hightlightActive && boardState[i] == 0) return; //if the highlight isn't active and the square clicked is empty, do nothing
 
          if(hightlightActive){ 
-            logWrite("Undraw Highlighted Index = %d\n", highlightIndex);
+          //  logWrite("Undraw Highlighted Index = %d\n", highlightIndex);
             hightlightActive = 0; 
          }
          
          highlightIndex = i; //set the highlight index to the square that was clicked
 
          hightlightActive = 1; //activate the highlight for valid moves
-         logWrite("Highlighted Index = %d\n", highlightIndex);
+         //logWrite("Highlighted Index = %d\n", highlightIndex);
         
          break; //exit the loop once we've found the square that was clicked
     }
@@ -491,7 +502,7 @@ void drawSquareHighlight(void){
   if(!hightlightActive) return;
   //First check if there's a background to restore from the last highlighted square, and if the highlight has moved to a new square, restore the background of the old highlighted square before drawing the new one
   if(highlightIndex != lastHighlightIndex[s_ubBufferIndex]){
-    logWrite("Restoring background for index %d\n", lastHighlightIndex[s_ubBufferIndex]);
+    //logWrite("Restoring background for index %d\n", lastHighlightIndex[s_ubBufferIndex]);
     //redraw the background to erase the old highlight
     
     blitCopy(pBmBoard, draw_pos[lastHighlightIndex[s_ubBufferIndex]].x, draw_pos[lastHighlightIndex[s_ubBufferIndex]].y,
@@ -607,7 +618,7 @@ void movePiece(void){
   
   //check if the selected new square is a valid move by checking the validMoves array at the highlightIndex, if it's not valid, return and do nothing
   if(validMoves[highlightIndex] != validGeneration){
-    logWrite("Invalid move attempted to index %d\n", highlightIndex);
+    //logWrite("Invalid move attempted to index %d\n", highlightIndex);
     return;
   }
 
@@ -646,6 +657,9 @@ void movePiece(void){
     }
   }
   checkForCaptures();
+  if(capturedPieceCount[s_ubBufferIndex] == 0){
+  checkShieldWallCaptures();
+  }
   hightlightActive = 0; //deactivate the highlight after a move is made
   HLhasBGToRestore[s_ubBufferIndex] = 1; //set restore flag
   checkGameEnd();
@@ -771,4 +785,139 @@ void checkGameEnd(void){
     return;
   }
   
+}
+
+void checkShieldWallCaptures(void){
+  UBYTE currentPieceTeam = boardState[highlightIndex];
+  
+  // Must be on an edge (one of the 4 neighbours is 99)
+  UBYTE onEdge = (boardState[highlightIndex + 1] == 99 || 
+                  boardState[highlightIndex - 1] == 99 ||
+                  boardState[highlightIndex - 13] == 99 || 
+                  boardState[highlightIndex + 13] == 99);
+  if(!onEdge) return;
+
+  // Must not be a corner (two perpendicular neighbours are 99)
+  UBYTE isCorner = ((boardState[highlightIndex + 1] == 99 || boardState[highlightIndex - 1] == 99) &&
+                    (boardState[highlightIndex - 13] == 99 || boardState[highlightIndex + 13] == 99));
+  if(isCorner) return;
+
+  // Determine front direction (perpendicular, into the board)
+  BYTE frontDir = 0;
+  if(boardState[highlightIndex - 13] == 99) frontDir = +13; // top edge, front is downward
+  if(boardState[highlightIndex + 13] == 99) frontDir = -13; // bottom edge, front is upward
+  if(boardState[highlightIndex - 1] == 99)  frontDir = +1;  // left edge, front is rightward
+  if(boardState[highlightIndex + 1] == 99)  frontDir = -1;  // right edge, front is leftward
+
+  // Directions to sweep along the edge
+  BYTE edgeDirs[2];
+  if(frontDir == +13 || frontDir == -13){ edgeDirs[0] = +1;  edgeDirs[1] = -1;  } // top/bottom edge, sweep horizontally
+  else                                  { edgeDirs[0] = +13; edgeDirs[1] = -13; } // left/right edge, sweep vertically
+
+  for(UBYTE d = 0; d < 2; d++){
+    BYTE edgeDir = edgeDirs[d];
+
+    UBYTE wallPieces[11];
+    UBYTE wallCount = 0;
+    UBYTE validWall = 1;
+    UBYTE farEndBracketed = 0;
+
+    UBYTE curr = highlightIndex;
+
+    while(1){
+      curr += edgeDir;
+
+      UBYTE piece = boardState[curr];
+
+      // Off the board entirely
+      if(piece == 99) break;
+
+      // Empty square, wall is broken
+      if(piece == 0) break;
+
+      // Friendly piece brackets the far end
+      if(piece == currentPieceTeam ||
+        (currentPieceTeam == 3 && piece == TEAM_DEFENDER) ||
+        (currentPieceTeam == TEAM_DEFENDER && piece == 3)){
+        farEndBracketed = 1;
+        break;
+      }
+
+      // Check if the square past this piece along the edge is 99 (corner bracket)
+      if(boardState[curr + edgeDir] == 99){
+        // Check this piece has a friendly in front before counting it
+        UBYTE frontPiece = boardState[curr + frontDir];
+        UBYTE hasFrontFriendly = (frontPiece == currentPieceTeam ||
+          (currentPieceTeam == 3 && frontPiece == TEAM_DEFENDER) ||
+          (currentPieceTeam == TEAM_DEFENDER && frontPiece == 3));
+
+        if(hasFrontFriendly){
+          // King can't be captured by shield wall
+          if(piece != 3) wallPieces[wallCount++] = curr;
+        } else {
+          validWall = 0;
+        }
+        farEndBracketed = 1;
+        break;
+      }
+
+      // King can't be captured by shield wall
+      if(piece == 3) break;
+
+      // Enemy piece — check it has a friendly in front
+      UBYTE frontPiece = boardState[curr + frontDir];
+      UBYTE hasFrontFriendly = (frontPiece == currentPieceTeam ||
+        (currentPieceTeam == 3 && frontPiece == TEAM_DEFENDER) ||
+        (currentPieceTeam == TEAM_DEFENDER && frontPiece == 3));
+
+      if(!hasFrontFriendly){
+        validWall = 0;
+        break;
+      }
+
+      wallPieces[wallCount++] = curr;
+    }
+
+    if(wallCount < 2 || !validWall || !farEndBracketed) continue;
+
+    for(UBYTE w = 0; w < wallCount; w++){
+      UBYTE idx = wallPieces[w];
+
+      if(currentPieceTeam == TEAM_ATTACKER){
+        for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
+          if(defenders[j].pos == idx && !defenders[j].captured){
+            defenders[j].captured = 1;
+            UBYTE slot = capturedPieceCount[s_ubBufferIndex];
+            if(slot < MAX_CAPTURES_PM){
+              capturedPieceIndex[0][slot] = idx;
+              capturedPieceIndex[1][slot] = idx;
+              capturedPieceCount[0]++;
+              capturedPieceCount[1]++;
+              pieceHasBGToRestore[0] = 1;
+              pieceHasBGToRestore[1] = 1;
+            }
+            boardState[idx] = 0;
+            break;
+          }
+        }
+      } else { // TEAM_DEFENDER or king capturing attackers
+        for(UBYTE k = 0; k < MAX_ATTACKERS; k++){
+          if(attackers[k].pos == idx && !attackers[k].captured){
+            attackers[k].captured = 1;
+            UBYTE slot = capturedPieceCount[s_ubBufferIndex];
+            if(slot < MAX_CAPTURES_PM){
+              capturedPieceIndex[0][slot] = idx;
+              capturedPieceIndex[1][slot] = idx;
+              capturedPieceCount[0]++;
+              capturedPieceCount[1]++;
+              pieceHasBGToRestore[0] = 1;
+              pieceHasBGToRestore[1] = 1;
+            }
+            boardState[idx] = 0;
+            break;
+          }
+        }
+      }
+    }
+  }
 }

@@ -12,7 +12,7 @@ if(ELF2HUNK)
 	add_executable(${macACE_EXECUTABLE} ${SOURCES})
 	
 	target_link_libraries(${macACE_EXECUTABLE} -Wl,-Map=macACE.map)
-	
+
 	add_custom_command(
 		TARGET ${macACE_EXECUTABLE} POST_BUILD
 		COMMAND ${ELF2HUNK} ${macACE_EXECUTABLE} ${macACE_OUTPUT_EXECUTABLE}
@@ -66,12 +66,12 @@ add_custom_target(generateZip COMMAND
 # Generating ADF
 set(ADF_DIR "${CMAKE_CURRENT_BINARY_DIR}/adf")
 add_custom_target(generateAdf
-	COMMAND ${CMAKE_COMMAND} -E make_directory "${ADF_DIR}/s"
-	COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${macACE_OUTPUT_EXECUTABLE}" "${ADF_DIR}"
-	COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/myacefont.fnt" "${ADF_DIR}"
-	COMMAND ${CMAKE_COMMAND} -E copy_directory "${DATA_DIR}" "${ADF_DIR}/data"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${ADF_DIR}/s"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${macACE_OUTPUT_EXECUTABLE}" "${ADF_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/myacefont.fnt" "${ADF_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${DATA_DIR}" "${ADF_DIR}/data"
 	COMMAND ${CMAKE_COMMAND} -E echo "${macACE_OUTPUT_EXECUTABLE}" > "${ADF_DIR}/s/startup-sequence"
-	COMMAND exe2adf -l ${CMAKE_PROJECT_NAME} -a "${CMAKE_PROJECT_NAME}.adf" -d ${ADF_DIR}
-	COMMAND ${CMAKE_COMMAND} -E rm -rf "${ADF_DIR}"
-	COMMENT "Generating ADF file"
+    COMMAND exe2adf -l ${CMAKE_PROJECT_NAME} -a "${CMAKE_PROJECT_NAME}.adf" -d ${ADF_DIR}
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${ADF_DIR}"
+    COMMENT "Generating ADF file"
 )

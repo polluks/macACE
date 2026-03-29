@@ -39,12 +39,14 @@ void setupPieces(void);
 void loadAssets(void);
 void getValidMoves(void);
 void movePiece(void);
-void checkForCaptures(void);
-void checkForWin(void);
 void drawBoard(void);
 void drawPieces(void);
 void drawSquareHighlight(void);
 void resetGame(void);
+void checkForWin(void);
 void checkGameEnd(void);
+void checkForCaptures(void);
+void checkShieldWallCaptures(void);
+void something(void);
 
 #endif // _GAME_H_
