@@ -275,14 +275,14 @@ void setupPieces(void){
     17,18,19,20,21,32,
     63,76,88,89,102,115,  
     79,66,53,92,105,80,
-    147,148,150,151,152,137 //checking shield wall
+    30,31,150,28,29,27 //checking shield wall
   };
 
   // UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
   //   84,58,70,71,72,82,83,85,86,96,97,98,110
   // };
   UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
-    84,58,70,71,72,82,83,85,86,133,134,135,149
+    147,58,70,71,72,82,83,85,86,133,134,135,149
   };
   // Set up the defenders
   for(int i = 0; i < MAX_DEFENDERS; i++){
@@ -431,7 +431,7 @@ void drawPieces(void){
 }
 
 void drawBoard(void){
-   pBmBoard = bitmapCreateFromPath("/data/GFX/BG1.bm",0);
+   pBmBoard = bitmapCreateFromPath("data/GFX/BG1.bm",0);
     //add asserts here later to check all this logic
     for(UWORD x = 0; x < s_pMainBuffer->uBfrBounds.uwX; x+=16){//fills out the background
     for(UWORD y = 0; y < s_pMainBuffer->uBfrBounds.uwY; y+=16){
@@ -658,7 +658,8 @@ void movePiece(void){
   }
   checkForCaptures();
   if(capturedPieceCount[s_ubBufferIndex] == 0){
-  checkShieldWallCaptures();
+    checkShieldWallCaptures();
+    checkExitFort();
   }
   hightlightActive = 0; //deactivate the highlight after a move is made
   HLhasBGToRestore[s_ubBufferIndex] = 1; //set restore flag
@@ -772,14 +773,14 @@ void checkGameEnd(void){
   //if the game ends by either the king being captured or the king escaping, stop the game and restart.
 
   //if the king is captured, Attackers Win
-  if(longLivetheKing > 0){
+  if(longLivetheKing == 1){
     gameWinner = 1;
     stateChange(g_pStateManager, g_pMenuState);
     return;
   }
 
   //The King escapes, the Defenders Win
-  else if(boardState[14] == 3 || boardState[24] == 3 || boardState[144] == 3 || boardState[154] == 3){
+  else if(boardState[14] == 3 || boardState[24] == 3 || boardState[144] == 3 || boardState[154] == 3 || longLivetheKing == 2){
     gameWinner = 2;
     stateChange(g_pStateManager, g_pMenuState);
     return;
@@ -788,6 +789,7 @@ void checkGameEnd(void){
 }
 
 void checkShieldWallCaptures(void){
+
   UBYTE currentPieceTeam = boardState[highlightIndex];
   
   // Must be on an edge (one of the 4 neighbours is 99)
@@ -920,4 +922,60 @@ void checkShieldWallCaptures(void){
       }
     }
   }
+}
+
+void checkExitFort(void){
+  UBYTE kingPos = 0;
+  //the king is always the first piece in the defenders array.
+  kingPos = defenders[0].pos;
+
+  // King must be touching the edge
+  if(!(boardState[kingPos + 1] == 99 || boardState[kingPos - 1] == 99 ||
+       boardState[kingPos - 13] == 99 || boardState[kingPos + 13] == 99)) return;
+
+  // King must have at least one empty square to move to
+  UBYTE canMove = (boardState[kingPos + 1] == 0 || boardState[kingPos - 1] == 0 ||
+                   boardState[kingPos - 13] == 0 || boardState[kingPos + 13] == 0);
+  if(!canMove) return;
+
+  // Flood fill from king position through empty squares
+  // If we only ever hit defenders or 99 on the boundary, the fort is sealed
+  UBYTE visited[169] = {0};
+  UBYTE queue[169];
+  UBYTE qHead = 0;
+  UBYTE qTail = 0;
+  UBYTE fortValid = 1;
+
+  queue[qTail++] = kingPos;
+  visited[kingPos] = 1;
+
+  BYTE dirs[4] = {1, -1, 13, -13};
+
+  while(qHead < qTail){
+    UBYTE curr = queue[qHead++];
+
+    for(UBYTE i = 0; i < 4; i++){
+      UBYTE next = curr + dirs[i];
+      if(visited[next]) continue;
+      visited[next] = 1;
+
+      UBYTE piece = boardState[next];
+
+      if(piece == 99) continue;           // board edge, fine
+      if(piece == TEAM_DEFENDER) continue; // defender on boundary, fine
+      if(piece == TEAM_ATTACKER){          // attacker can get in, fort broken
+        fortValid = 0;
+        break;
+      }
+      if(piece == 0){                      // empty square inside fort, keep filling
+        queue[qTail++] = next;
+      }
+    }
+    if(!fortValid) break;
+  }
+
+  if(fortValid){
+    longLivetheKing = 2; //set the flag to indicate the king has escaped
+  }
+
 }

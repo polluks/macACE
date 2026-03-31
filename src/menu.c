@@ -37,12 +37,12 @@ void menuGsCreate(void){
     s_pMainBuffer = simpleBufferCreate(0,TAG_SIMPLEBUFFER_VPORT, s_pVpMain, TAG_SIMPLEBUFFER_BITMAP_FLAGS, BMF_INTERLEAVED, BMF_CLEAR, TAG_END);
     
     //colour palette for the menu
-    paletteLoadFromPath("/data/palette/menuPalette.plt", s_pVpMain->pPalette, 32);
+    paletteLoadFromPath("data/palette/menuPalette.plt", s_pVpMain->pPalette, 32);
     
-    pBDefwin = bitmapCreateFromPath("/data/GFX/defwin.bm",0);
-    pBmAckwin = bitmapCreateFromPath("/data/GFX/ackwin.bm",0);
+    pBDefwin = bitmapCreateFromPath("data/GFX/defwin.bm",0);
+    pBmAckwin = bitmapCreateFromPath("data/GFX/ackwin.bm",0);
     
-    menufont = fontCreateFromPath("/data/font/myacefont.fnt");
+    menufont = fontCreateFromPath("data/font/myacefont.fnt");
 
     if(gameWinner == 1){
         //draw attackers win background

@@ -70,9 +70,8 @@ CMakeFiles/generateAdf:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating ADF file"
 	/opt/homebrew/bin/cmake -E make_directory /Users/phillipb/Documents/macACE/build/adf/s
 	/opt/homebrew/bin/cmake -E copy /Users/phillipb/Documents/macACE/build/macACE.exe /Users/phillipb/Documents/macACE/build/adf
-	/opt/homebrew/bin/cmake -E copy /Users/phillipb/Documents/macACE/build/myacefont.fnt /Users/phillipb/Documents/macACE/build/adf
+	/opt/homebrew/bin/cmake -E copy /Users/phillipb/Documents/macACE/build/startup-sequence /Users/phillipb/Documents/macACE/build/adf/s/startup-sequence
 	/opt/homebrew/bin/cmake -E copy_directory /Users/phillipb/Documents/macACE/build/data /Users/phillipb/Documents/macACE/build/adf/data
-	/opt/homebrew/bin/cmake -E echo macACE.exe > /Users/phillipb/Documents/macACE/build/adf/s/startup-sequence
 	exe2adf -l macACE -a macACE.adf -d /Users/phillipb/Documents/macACE/build/adf
 	/opt/homebrew/bin/cmake -E rm -rf /Users/phillipb/Documents/macACE/build/adf
 
