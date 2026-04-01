@@ -40,7 +40,7 @@
 static tView *s_pView; // View containing all the viewports
 static tVPort *s_pVpMain; // Viewport for playfield
 static tSimpleBufferManager *s_pMainBuffer; //only a main screen in this, no score ribbon
-static tRandManager *s_pRandManager;
+//static tRandManager *s_pRandManager;
 
 /*-----Game Piece Setup-----*/
 g_piece attackers[MAX_ATTACKERS];
@@ -50,16 +50,12 @@ g_piece defenders[MAX_DEFENDERS];
 static tBitMap *pBmBoard;
 static tBitMap *pBmAttackers[MAX_ATTACKERS];
 static tBitMap *pBmAttackers_Mask[MAX_ATTACKERS];
-//static tBitMap *pBmAttackers_BG[MAX_ATTACKERS]; //for drawing the pieces with the background when they move, to prevent leaving trails
 static tBitMap *pBmDefenders[MAX_DEFENDERS];
 static tBitMap *pBmDefenders_Mask[MAX_DEFENDERS];
-//static tBitMap *pBmDefenders_BG[MAX_DEFENDERS]; //for drawing the pieces with the background when they move, to prevent leaving trails
 static tBitMap *pBmKing; //since the king is a different graphic
 static tBitMap *pBmKing_Mask;
-//static tBitMap *pBmKing_BG; 
 static tBitMap *pBmClashFX; //FX to flash when one piece takes another
 static tBitMap *pBmClashFX_Mask;
-//static tBitMap *pBmClashFX_BG; //for drawing the FX with the background when they move, to prevent leaving trails
 static tBitMap *pBmSquareHighlight; //for highlighting valid moves and selected pieces
 static tBitMap *pBmSquareHighlight_Mask;
 static tBitMap *pBmSquareHighlight_BG[2]; //for drawing the highlight with the background when it moves, to prevent leaving trails
@@ -70,6 +66,7 @@ static tSprite *pSMouseCursor;
 
 tTextBitMap *gametextbitmapattack; //bitmap for the font
 tTextBitMap *gametextbitmapdefend; //bitmap for the font
+tTextBitMap *version;
 
 tFont *gFontSmall; //global font for screen
 
@@ -77,7 +74,6 @@ tFont *gFontSmall; //global font for screen
 /*-----Global Vars-----*/
 ULONG startTime;
 UBYTE boardState[169]; // flattened 13x13 board array, each index corresponds to a square on the board. oversized to avoid out of bounds errors, only 169 squares on the board. 0-168 valid indices.
-UBYTE boardStateNew[169]; //used to hold the new state of the board after a move, here we can check for captures, wins etc before doing a compare and draw the difference.
 UBYTE validMoves[169]; //used to hold the valid moves for a selected piece.
 UBYTE currentPlayer = TEAM_ATTACKER; 
 UBYTE s_ubBufferIndex = 0; //for double buffering, keeps track of which buffer we're currently drawing to
@@ -89,7 +85,7 @@ UBYTE pieceHasBGToRestore[2] = {0, 0}; //used to track whether the piece we're a
 UBYTE capturedPieceIndex[2][MAX_CAPTURES_PM]; //the index of the piece that was captured in the last move, so we can draw the clash FX on top of it and then restore the background after.
 UBYTE capturedPieceCount[2] = {0,0};
 UBYTE validGeneration = 0; //used for tracking valid moves in the valid moves array. 
-UBYTE moveHistory[10]; //Record the move history so we can track for repetions
+UBYTE moveHistory[10]; //Record the move history so we can track for repetitions
 UBYTE longLivetheKing = 0; //flag for when the king is captured.
 UBYTE gameWinner = 0; //0 no one, 1 attackers, 2 defenders
 ScreenPos draw_pos[169];
@@ -128,6 +124,7 @@ void gameGsCreate(void) {
 
     gametextbitmapattack = fontCreateTextBitMapFromStr(gFontSmall, "ACK");
     gametextbitmapdefend = fontCreateTextBitMapFromStr(gFontSmall, "DEF");
+    version = fontCreateTextBitMapFromStr(gFontSmall,"T"); //versioning so I know if the ADF disk updated correctly.
 
     spriteSetEnabled(pSMouseCursor, 1);
     
@@ -143,13 +140,11 @@ void gameGsCreate(void) {
     drawPieces(); //draws the board and pieces to the screen, will need to be called again every time a piece moves or is captured
     currentPlayer = TEAM_ATTACKER; //reset the current player to the attackers at the start of the game, in case we're coming from the menu after a game has ended.
     
-    
     systemUnuse();
     // Load the view
     viewLoad(s_pView);
   
 }
-
 
 void gameGsLoop(void) {
     // This will loop every frame
@@ -180,6 +175,7 @@ void gameGsLoop(void) {
     
     fontDrawTextBitMap(s_pMainBuffer->pBack, gametextbitmapattack, 6,110,0,FONT_COOKIE);
     fontDrawTextBitMap(s_pMainBuffer->pBack, gametextbitmapdefend, 295,110,0,FONT_COOKIE);
+    fontDrawTextBitMap(s_pMainBuffer->pBack, version, 8,8,0,FONT_COOKIE);
 
     if(mouseCheck(MOUSE_PORT_1, MOUSE_LMB)){
       onClick(mouseX, mouseY);
@@ -228,8 +224,7 @@ void gameGsDestroy(void) {
       bitmapDestroy(pBmDefenders_Mask[d]);
     }
     bitmapDestroy(pBmKing);
-    //bitmapDestroy(pBmClashFX);
-    //bitmapDestroy(pBmClashFX_Mask);
+    bitmapDestroy(pBmClashFX);
     bitmapDestroy(pBmSquareHighlight);
     bitmapDestroy(pBmSquareHighlight_BG[0]);
     bitmapDestroy(pBmSquareHighlight_BG[1]);
@@ -238,7 +233,6 @@ void gameGsDestroy(void) {
     fontDestroyTextBitMap(gametextbitmapdefend);
     systemSetDmaBit(DMAB_SPRITE, 0);
     spriteManagerDestroy();
-
     bitmapDestroy(pBmBoard);
     viewDestroy(s_pView);
 }
@@ -265,25 +259,25 @@ void loadAssets(void){
 //sets up the pieces in their starting positions in the board array and in the piece structs
 void setupPieces(void){
   
-  // UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
-  //   17,18,19,20,21,32,
-  //   63,76,88,89,102,115,  
-  //   79,66,53,92,105,80,
-  //   147,148,149,150,151,136
-  // };
-   UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
+  UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
     17,18,19,20,21,32,
     63,76,88,89,102,115,  
     79,66,53,92,105,80,
-    30,31,150,28,29,27 //checking shield wall
+    147,148,149,150,151,136
   };
-
-  // UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
-  //   84,58,70,71,72,82,83,85,86,96,97,98,110
+  //  UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
+  //   29,30,31,32,33,34,
+  //   42,48,54,61,67,74,  
+  //   80,87,93,100,107,112,
+  //   113,115,134,122,123,124 //checking shield wall
   // };
+
   UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
-    147,58,70,71,72,82,83,85,86,133,134,135,149
+    84,58,70,71,72,82,83,85,86,96,97,98,110
   };
+  // UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
+  //   84,58,70,71,72,82,135,85,86,96,97,98,110
+  // };
   // Set up the defenders
   for(int i = 0; i < MAX_DEFENDERS; i++){
     defenders[i].type = (i == 0) ? KING : DEFENDER; // First piece is the king, the rest are defenders
@@ -362,37 +356,34 @@ void buildBoard(void){
     }
     #endif
 }
-//draws the pieces to the screen, will need to be called again every time a piece moves or is captured
-//Look to make this more efficent later by only redrawing the squares that changed when a piece moves or is captured.
-//**GEMINI suggestion is to loop through the pieces and not the board tiles, but I think the move logic might be tied into this. */
+
 void drawPieces(void){ 
-  for (UBYTE i = 0; i < 169; i++){
-    if(boardState[i] == 1){ //defender
-      for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
-        if(defenders[j].pos == i && !defenders[j].captured){ //find the defender that is in this position and hasn't been captured, then draw it
-          //Then draw the piece with the mask for transparency
-          blitCopyMask(pBmDefenders[j],0,0, 
-          s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
-          PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmDefenders_Mask[j]->Planes[0]);
-        }
-      }
-    } 
-    else if(boardState[i] == 2){ //attacker
-      for(UBYTE k = 0; k < MAX_ATTACKERS; k++){
-        if(attackers[k].pos == i && !attackers[k].captured){              
-          //Then draw the piece with the mask for transparency
-          blitCopyMask(pBmAttackers[k],0,0,
-          s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
-          PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmAttackers_Mask[k]->Planes[0]);
-        }
-      }
-    } else if(boardState[i] == 3){ //king
-    //Then draw the king with the mask for transparency
-    blitCopyMask(pBmKing,0,0,
+  //More efficent method, go through each defender or attacker in the respective arrays, if not captured, draw.
+  for(UBYTE j = 0; j < MAX_DEFENDERS; j++){ //start at 1 since the king is zero
+    UBYTE i = defenders[j].pos;
+    //The first position in the array is always the king
+    if(j == 0){
+      blitCopyMask(pBmKing,0,0,
       s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
       PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmKing_Mask->Planes[0]);
     }
+    else{
+      if(!defenders[j].captured){
+        blitCopyMask(pBmDefenders[j],0,0, 
+        s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
+        PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmDefenders_Mask[j]->Planes[0]); 
+      }
+    }
   }
+  for(UBYTE k = 0; k < MAX_ATTACKERS; k++){
+    UBYTE i = attackers[k].pos;
+    if(!attackers[k].captured){
+      blitCopyMask(pBmAttackers[k],0,0,
+      s_pMainBuffer->pBack, draw_pos[i].x, draw_pos[i].y,
+      PIECE_SPRITE_WIDTH,PIECE_SPRITE_HEIGHT,pBmAttackers_Mask[k]->Planes[0]);
+    }
+  }
+
   //if the highlight for valid moves is not active, we can restore the background of the last highlighted square to erase the highlight
   if(hightlightActive == 0){ 
     if(HLhasBGToRestore[s_ubBufferIndex]){ //check if there's a background to restore
@@ -413,7 +404,7 @@ void drawPieces(void){
     pieceHasBGToRestore[s_ubBufferIndex] = 0; //reset the flag after restoring
     capturedPieceCount[s_ubBufferIndex] = 0;
   }
-
+  //this manages the clash symbol which shows who's turn it is.
   if(currentPlayer == TEAM_ATTACKER){
     //undraw the clash from the defender side and redraw it on the attacker side
     blitCopy(pBmBoard, 288, 119,
@@ -660,6 +651,7 @@ void movePiece(void){
   if(capturedPieceCount[s_ubBufferIndex] == 0){
     checkShieldWallCaptures();
     checkExitFort();
+    checkSurrounded();
   }
   hightlightActive = 0; //deactivate the highlight after a move is made
   HLhasBGToRestore[s_ubBufferIndex] = 1; //set restore flag
@@ -685,7 +677,7 @@ void checkForCaptures(void){
   
   UBYTE neighbours[4] = {RIGHT, LEFT, UP, DOWN};
   UBYTE neighbourIndexes[4] = {RIGHTINDEX, LEFTINDEX, UPINDEX, DOWNINDEX};
-  BYTE directions[4] = {1, -1, -13, 13}; //used to check the square on the other side of the enemy piece for capture rules
+  BYTE directions[4] = {1, -1, -13, +13}; //used to check the square on the other side of the enemy piece for capture rules
 
   for(UBYTE i = 0; i < 4; i++){
     UBYTE neighbour = neighbours[i];
@@ -716,7 +708,7 @@ void checkForCaptures(void){
             boardState[neighbourIndex] = 0; //update the boardState array to remove it from the board
             longLivetheKing = 1; //set the flag to indicate the king is captured
           }  
-          return; //exit the function since the game is over
+          //return; //exit the function since the game is over
         }
 
         if((boardState[neighbourIndex + direction]) == currentPieceTeam || //if the piece on the other side is on the same team
@@ -746,7 +738,7 @@ void checkForCaptures(void){
             }
           } 
           else if(currentPieceTeam == TEAM_ATTACKER){ //if the piece that moved is an attacker, it can only capture defenders and the king
-            for(UBYTE j = 0; j < MAX_DEFENDERS; j++){
+            for(UBYTE j = 1; j < MAX_DEFENDERS; j++){ //start the array at 1 since 0 is always the king and the king can only be captured by the king capture rules.
               if(defenders[j].pos == (neighbourIndex) && !defenders[j].captured){ 
                 
                 defenders[j].captured = 1; 
@@ -923,7 +915,7 @@ void checkShieldWallCaptures(void){
     }
   }
 }
-
+// Uses a flood fill from the king to check if the king is surrounded by a ring of defenders and is against the edge.
 void checkExitFort(void){
   UBYTE kingPos = 0;
   //the king is always the first piece in the defenders array.
@@ -978,4 +970,80 @@ void checkExitFort(void){
     longLivetheKing = 2; //set the flag to indicate the king has escaped
   }
 
+}
+/*Checks if the King and all defenders are surrounded. We use a flood fill algorithm to check if the king/defenders are srrounded
+then we count the total amount of defenders inside the ring, if it matches the total number of alive defenders the king is caputred.*/
+void checkSurrounded(void){
+  //if current selected piece is a defender then break, this is for checking if the attackers have surrounded the king only.
+  if (boardState[highlightIndex] == 1 || boardState[highlightIndex] == 3) return;
+  //king is always the first in the defenders array, so we can just get the position from there.
+  UBYTE kingPos = defenders[0].pos;
+  
+  // Count total non-captured defenders including king
+  
+  UBYTE totalDefenders = 0;
+  for(UBYTE i = 0; i < MAX_DEFENDERS; i++){
+    if(!defenders[i].captured) totalDefenders++;
+  }
+  // visited[] tracks which squares the flood fill has already checked,
+  // so we don't visit the same square twice and loop forever.
+  UBYTE visited[169] = {0};
+  // queue[] is the list of squares waiting to be checked. 
+  // qHead is the next square to process, qTail is where we add new squares.
+  // When qHead == qTail, the queue is empty and the fill is complete.
+  UBYTE queue[169];
+  UBYTE qHead = 0;
+  UBYTE qTail = 0;
+
+  UBYTE reachedEdge = 0;  // set to 1 if the fill reaches a 99 border square
+  UBYTE defendersInRing = 1; // start with 1 to count the king itself
+
+  // Seed the flood fill from the king's position
+  queue[qTail++] = kingPos;
+  visited[kingPos] = 1;
+
+  // The four directions to check from each square: right, left, up, down
+  BYTE dirs[4] = {1, -1, 13, -13};
+
+  // Process each square in the queue until the queue is empty or we reach the edge
+  while(qHead < qTail){
+    UBYTE curr = queue[qHead++]; // take the next square off the front of the queue
+
+    for(UBYTE i = 0; i < 4; i++){
+      UBYTE next = curr + dirs[i]; // the square in this direction
+      
+      if(visited[next]) continue; // already checked this square, skip it
+      visited[next] = 1;          // mark it as visited so we don't check it again
+
+      UBYTE piece = boardState[next];
+
+      // Reached the board border — the fill has escaped the ring,
+      // meaning the attackers have NOT fully surrounded everyone.
+      if(piece == 99){
+        reachedEdge = 1;
+        break;
+      }
+       // Attacker square — this is the wall of the ring. 
+      // Don't add it to the queue, the fill stops here in this direction.
+
+      if(piece == TEAM_ATTACKER) continue; // boundary of the ring
+      
+      // Found a defender or the king inside the ring — count them and
+      // add their square to the queue so we continue filling from there.
+      if(piece == TEAM_DEFENDER || piece == 3){
+        defendersInRing++;               // count defenders inside the ring
+        queue[qTail++] = next;
+      }
+      // Empty square inside the ring — add to queue to keep filling outward
+      if(piece == 0){
+        queue[qTail++] = next;
+      }
+    }
+    if(reachedEdge) break; // no point continuing if we've already escaped the ring
+  }
+
+  // Ring is only valid if all defenders are trapped inside it
+  if(!reachedEdge && defendersInRing == totalDefenders){
+    longLivetheKing = 1;
+  }
 }

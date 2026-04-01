@@ -48,5 +48,6 @@ void checkGameEnd(void);
 void checkForCaptures(void);
 void checkShieldWallCaptures(void);
 void checkExitFort(void);
+void checkSurrounded(void);
 
 #endif // _GAME_H_

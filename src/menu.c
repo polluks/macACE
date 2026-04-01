@@ -93,10 +93,10 @@ void menuGsLoop(void){
         return;
     }
 
-    //may induce lag having to destroy the text every frame?
-    menutextbitmap = fontCreateTextBitMapFromStr(menufont, "GAME OVER");
-    fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 + 105, 8, FONT_COOKIE);
-    //fontDestroyTextBitMap(menutextbitmap);
+    // //may induce lag having to destroy the text every frame?
+    // menutextbitmap = fontCreateTextBitMapFromStr(menufont, "GAME OVER");
+    // fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 + 105, 8, FONT_COOKIE);
+    // //fontDestroyTextBitMap(menutextbitmap);
 
     copProcessBlocks();
     systemIdleBegin();
@@ -105,8 +105,8 @@ void menuGsLoop(void){
 
 void menuGsDestroy(void){
     systemUse();
-    viewDestroy(s_pMenuView);
     bitmapDestroy(pBmAckwin);
     bitmapDestroy(pBDefwin);
     fontDestroyTextBitMap(menutextbitmap);
+    viewDestroy(s_pMenuView);
 }

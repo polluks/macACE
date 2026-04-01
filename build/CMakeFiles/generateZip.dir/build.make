@@ -67,8 +67,8 @@ include CMakeFiles/generateZip.dir/compiler_depend.make
 include CMakeFiles/generateZip.dir/progress.make
 
 CMakeFiles/generateZip:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating macACE 26_3_30.zip"
-	/opt/homebrew/bin/cmake -E tar cf macACE\ 26_3_30.zip --format=zip /Users/phillipb/Documents/macACE/build/macACE.exe /Users/phillipb/Documents/macACE/build/myacefont.fnt
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/phillipb/Documents/macACE/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating macACE 26_4_1.zip"
+	/opt/homebrew/bin/cmake -E tar cf macACE\ 26_4_1.zip --format=zip /Users/phillipb/Documents/macACE/build/macACE.exe /Users/phillipb/Documents/macACE/build/myacefont.fnt
 
 CMakeFiles/generateZip.dir/codegen:
 .PHONY : CMakeFiles/generateZip.dir/codegen
