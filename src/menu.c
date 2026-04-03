@@ -27,7 +27,7 @@ static tSimpleBufferManager *s_pMainBuffer;
 tFont *menufont;    //font
 tTextBitMap *menutextbitmap; //bitmap for the font
 static tBitMap *pBDefwin;
-static tBitMap *pBmAckwin;
+tBitMap *pBmAckwin;
 
 void menuGsCreate(void){
     // //create view port and the display buffer for the main viewport
@@ -43,7 +43,8 @@ void menuGsCreate(void){
     pBmAckwin = bitmapCreateFromPath("data/GFX/ackwin.bm",0);
     
     menufont = fontCreateFromPath("data/font/myacefont.fnt");
-
+    menutextbitmap = fontCreateTextBitMapFromStr(menufont, "XXXXXXXXXXXXXXXXXXX");
+    
     if(gameWinner == 1){
         //draw attackers win background
         for(UWORD x = 0; x < s_pMainBuffer->uBfrBounds.uwX; x+=16){
@@ -52,10 +53,7 @@ void menuGsCreate(void){
             blitCopyAligned(pBmAckwin,x,y,s_pMainBuffer->pFront,x,y,16,16);
             }
         }
-
-        menutextbitmap = fontCreateTextBitMapFromStr(menufont, "ATTACKERS WIN");
-        fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 + 95, 8, FONT_COOKIE);
-        fontDestroyTextBitMap(menutextbitmap);
+        fontDrawStr(menufont, s_pMainBuffer->pBack, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 + 95, "ATTACKERS WIN", 8, FONT_COOKIE, menutextbitmap);
     }
     else if(gameWinner == 2){
 
@@ -66,13 +64,11 @@ void menuGsCreate(void){
             }
         }
 
-        menutextbitmap = fontCreateTextBitMapFromStr(menufont, "DEFENDERS WIN");
-        fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 + 95, 8, FONT_COOKIE);
-        fontDestroyTextBitMap(menutextbitmap); 
+        fontDrawStr(menufont, s_pMainBuffer->pBack, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 + 95, "DEFENDERS WIN", 8, FONT_COOKIE, menutextbitmap);
     }
     menutextbitmap = fontCreateTextBitMapFromStr(menufont, "Play Again Y N");
     fontDrawTextBitMap(s_pMainBuffer->pBack, menutextbitmap, MENU_WIDTH / 2 - 36, MENU_HEIGHT / 2 + 84, 8, FONT_COOKIE);
-    fontDestroyTextBitMap(menutextbitmap);
+    
 
     systemUnuse();
     viewLoad(s_pMenuView);

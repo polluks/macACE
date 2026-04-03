@@ -124,7 +124,7 @@ void gameGsCreate(void) {
 
     gametextbitmapattack = fontCreateTextBitMapFromStr(gFontSmall, "ACK");
     gametextbitmapdefend = fontCreateTextBitMapFromStr(gFontSmall, "DEF");
-    version = fontCreateTextBitMapFromStr(gFontSmall,"T"); //versioning so I know if the ADF disk updated correctly.
+    version = fontCreateTextBitMapFromStr(gFontSmall,"R"); //versioning so I know if the ADF disk updated correctly.
 
     spriteSetEnabled(pSMouseCursor, 1);
     
@@ -265,20 +265,11 @@ void setupPieces(void){
     79,66,53,92,105,80,
     147,148,149,150,151,136
   };
-  //  UBYTE attackerPositions[MAX_ATTACKERS] = { //predefined starting positions for attackers
-  //   29,30,31,32,33,34,
-  //   42,48,54,61,67,74,  
-  //   80,87,93,100,107,112,
-  //   113,115,134,122,123,124 //checking shield wall
-  // };
 
   UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
     84,58,70,71,72,82,83,85,86,96,97,98,110
   };
-  // UBYTE defenderPositions[MAX_DEFENDERS] = { //predefined starting positions for defenders, including the king
-  //   84,58,70,71,72,82,135,85,86,96,97,98,110
-  // };
-  // Set up the defenders
+ 
   for(int i = 0; i < MAX_DEFENDERS; i++){
     defenders[i].type = (i == 0) ? KING : DEFENDER; // First piece is the king, the rest are defenders
     defenders[i].team = TEAM_DEFENDER;
